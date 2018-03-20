@@ -1,4 +1,5 @@
-//const log = require("./log/log.js")
+const log = require("./log/log.js")
+// log.saveLog();
 //const express = require('express');
 const serverConfig = require('./config/serverConfig.json');
 const path = require('path');
@@ -18,10 +19,6 @@ var Tx = require('ethereumjs-tx');
 
 // 调用服务器的方法名
 const functionName = ['insertHash', 'selectHash'];
-
-//web3 = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws'));
-//const walletProvider = new HDWalletProvider(walletConfig.mnemonic, "https://rinkeby.infura.io/" + infura_apikey);
-//web3 = new Web3(walletProvider.engine);
 
 const keystore = require(walletConfig.keystore);
 //console.log('keystore  ', keystore);
@@ -67,8 +64,6 @@ function initWebsocketProvider() {
 
 
 
-
-
 var App = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
   start: function () {
@@ -101,8 +96,8 @@ var App = {
         let inserHashResult = {};
 
         // 拿到rawTx里面的data部分
-        let encodeData_param = web3.eth.abi.encodeParameters(['bytes32'], [dataObject.data]);
-        let encodeData_function = web3.eth.abi.encodeFunctionSignature('insertHash(bytes32)');
+        let encodeData_param = web3.eth.abi.encodeParameters(['string'], [dataObject.data]);
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('insertHash(string)');
         let encodeData = encodeData_function + encodeData_param.slice(2);
 
        
@@ -270,4 +265,3 @@ server.listen({
   console.log("server is listening on ", serverConfig.serverHost + ":" + serverConfig.serverPort + "\n");
 });
 
-//log.saveLog();

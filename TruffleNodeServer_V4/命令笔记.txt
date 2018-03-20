@@ -1,7 +1,5 @@
 truffle init
 
-npm install
-
 生成package.json 
     npm init
 
@@ -73,8 +71,13 @@ npm install querystring --save
     console.log('Successfully unsubscribed!');
     });
 
-sign的注意事项：
+合约sign的注意事项：
     rawTx的data部分，需要方法和传参的encode数据
+    解决 Error: throw new Error('Given parameter bytes is too long: "' + value + '"');
+        注意着两行代码的参数是否跟智能合约的一致
+        let encodeData_param = web3.eth.abi.encodeParameters(['string'], [dataObject.data]);
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('insertHash(string)');
+    
     设定rawTx的gas方式为 gasPrice和gasLimit共同设置（需要将10进制做toHex处理）
     为了解决 ’Returned error: nonce too low‘ 的Error，需要在rawTx中设置noncerror
         关键字：the Initial Account Nonce
@@ -83,6 +86,3 @@ sign的注意事项：
 
 
 
-  
-
-    

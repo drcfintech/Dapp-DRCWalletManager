@@ -10,7 +10,7 @@ $(function () {　　
         let hash = $("#hash").val().trim();
         // 前处理
         clearResultArea();
-        if (checkInput(hash)) {
+        if (!checkInput(hash)) {
             $("#error").html("ERRO: 请正确输入64位Hash值 <br>");
             $('#loader').hide();
             return;
@@ -60,7 +60,7 @@ $(function () {　　
         let hash = $("#hash").val().trim();
         // 前处理
         clearResultArea();
-        if (checkInput(hash)) {
+        if (!checkInput(hash)) {
             $("#error").html("ERRO: 请正确输入64位Hash值 <br>");
             $('#loader').hide();
             return;
@@ -88,10 +88,9 @@ $(function () {　　
                 //链上查询返回值第一个为true：查询到了该数据
                 if (dataObject.result[0] != undefined && dataObject.result[0]) {
                     $("#acctionResult").html("查询 成功<br>");
-                    let time = new Date(dataObject.result[1] * 1000).toLocaleString();
+                    let time = new Date(dataObject.result[2] * 1000).toLocaleString();
 
-                    let infoTemp =
-                        `上链时间 ${time || "没有值"}`;
+                    let infoTemp = `上链账号 ${dataObject.result[1] || "empty data" } <br><br> 上链时间 ${time || "empty data"}`;
                     $("#info").html(infoTemp || "empty data");
                     return;
                 }
