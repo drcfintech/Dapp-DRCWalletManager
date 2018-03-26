@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>跨域Http请求</title>
+
+    <link rel="stylesheet" type="text/css" href="./css/main.css">
+
+</head>
+
+<body>
+    <img id='logo' src="https://avatars1.githubusercontent.com/u/34734566?s=460&v=4">
+    <h1>DRC Hash上链Demo</h1>
+
+    <br>
+    <input type="text" id="hash" placeholder="请输入64位Hash值" value="ee0fadc8dad2fc978f48b7a5897dc5fa5f1f0c5bbf9ee66779690b773682918c"></input>
+    <br>
+
+    <br>
+    <button id="insertHash">上链</button>
+
+    <br>
+    <br>
+    <button id="selectHash">链上查询</button>
+
+
+    <div id="resultArea">
+        <img id="loader" src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif">
+
+        <br>
+        <h3 id="acctionResult"></h3>
+        <p id="timer"></p>
+
+        <p id="sha256"></p>
+        <p id="txHash"></p>
+        <p id="gasUsed"></p>
+        <p id="gasPrice"></p>
+
+        <br>
+        <p id="info"></p>
+
+
+        <br>
+        <p id="error"></p>
+
+    </div>
+
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="./js/main.js"></script>
+
+</body>
+
+</html>
