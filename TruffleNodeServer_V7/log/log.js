@@ -26,14 +26,14 @@ const saveLog = (operation, date, hash, gasPrice, gasUsed, result) => {
         gasUsed: gasUsed,
         result: result
     }) + '\n';
-
-    let stream = fs.createWriteStream("./log/" + getServerLogFileName(), {
+    
+    let stream = fs.createWriteStream(__dirname + "/" + getServerLogFileName(), {
         flags: 'a'
     });
 
     stream.write(jsonString);
     stream.end();
-    console.log("Done saved log to => ", getServerLogFileName());
+    console.log("Done saved log to => ", __dirname + "/" + getServerLogFileName());
 }
 
 module.exports = {

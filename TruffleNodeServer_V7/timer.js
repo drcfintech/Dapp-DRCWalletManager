@@ -12,7 +12,8 @@ const mailConfig = require("./config/mailConfig.json");
 let getMailOptions = () => {
     return new Promise((resolve, reject) => {
         // 返回今日要发送的的log文件名
-        let serverLogFileName = "./log/serverLog_" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + ".log";
+        console.log("__dirname=>  ", __dirname);
+        let serverLogFileName = __dirname + "/log/serverLog_" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + ".log";
 
         fs.access(serverLogFileName, fs.constants.R_OK, (error) => {
             if (error) {
