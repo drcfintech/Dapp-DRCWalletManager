@@ -1,51 +1,30 @@
 // 非对称加密 https://nodejs.org/api/crypto.html#crypto_verify_verify_object_signature_signatureformat
 
-// 私钥加密，公钥验签
+/*
+ * 私钥加密，公钥验签
+ * 参数  message: data(前64位) + sign(除去data的剩余数据)
+ */
+const fs = require('fs');
+const crypto = require('crypto');
+
 module.exports = {
-    validation: () => {
-        var crypto = require('crypto');
-        var fs = require('fs');
+    validate: (message) => {
+        // 获取公钥字符串
+        let publicPem = fs.readFileSync(__dirname + '/key/key-cert.pem');
+        let publickey = publicPem.toString();
+        // ---------------公钥验签开始---------------
+        let verify = crypto.createVerify('RSA-SHA256');
 
-        function veryfy(privateKey, publicKey) {
-            // 获取公钥私钥字符串
-            var privatePem = fs.readFileSync(privateKey);
-            var publicPem = fs.readFileSync(publicKey);
+        // 取得原文
+        let inputData = message.slice(0, 64);
+        // 签名之后的数据
+        let inputSig = message.slice(64);
 
-            var privatekey = privatePem.toString();
-            var publickey = publicPem.toString();
+        verify.update(inputData);
 
-            // 要加密的数据
-            var data = "ee0fadc8dad2fc978f48b7a5897dc5fa5f1f0c5bbf9ee66779690b773682918c";
+        let result = verify.verify(publickey, inputSig, 'hex');
+        // console.log('公钥验签结果', result);
 
-            dataHash = crypto.createHash("sha256").update(data, "utf8").digest("hex");
-
-            console.log('dataHash = > ', dataHash);
-
-
-            // 私钥签名
-            var sign = crypto.createSign('RSA-SHA256');
-            sign.update(data);
-            var sig = sign.sign(privatekey, 'hex');
-
-
-
-            // ---------------公钥验签开始---------------
-            var verify = crypto.createVerify('RSA-SHA256');
-            // 取得原文
-            verify.update(data);
-            //verify.update(dataHash);
-            console.log('verify = >', verify);
-
-            // 1.验证Hash（原文）， 验证签名（用公钥验证私钥是否匹配）
-            console.log('公钥验签结果', verify.verify(publickey, sig, 'hex'));
-            console.log('sign', sig);
-        }
-
-        veryfy('./key/key.pem', './key/key-cert.pem');
-        // veryfy('./key/key02.pem', './key/key-cert02.pem');
-
-        // veryfy('./key/key.pem', './key/key-cert02.pem');
-        // veryfy('./key/key02.pem', './key/key-cert.pem');
-
+        return result;
     }
 };

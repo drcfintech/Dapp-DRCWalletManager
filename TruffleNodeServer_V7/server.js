@@ -1,3 +1,4 @@
+const validation = require("./validation.js");
 const log = require("./log/log.js");
 const timer = require("./timer.js");
 const responceData = require("./responceData.js")
@@ -259,63 +260,53 @@ var Actions = {
   }
 };
 
+// post数据处理模块
+let qs;
+app.use((req, res, next) => {
+  // 初始化socket连接
+  initWeb3Provider();
+  req.on('data', function (chunk) {
+    // 将前台传来的值，转回对象类型
+    qs = querystring.parse(chunk);
+    // 处理java post过来的数据
+    if (qs.data) {
+      qs = JSON.parse(qs.data);
+    }
+    next();
+  })
+});
+
+// 验签模块
+app.use((req, res, next) => {
+  if (validation.validate(qs.hash)) {
+    next();
+  } else {
+    // 验签不通过，返回错误信息
+    res.end(JSON.stringify(responceData.validationFailed));
+  };
+});
 
 
 /**********************************************/
 /**************SERVER
 /**********************************************/
-let qs;
-app.post("/insertHash", function (req, res) {　　
-  // 初始化socket连接
-  initWeb3Provider();
-
-  req.on('data', function (chunk) {
-    let result;
-    // 将前台传来的值，转回对象类型
-    qs = querystring.parse(chunk);
-    // 处理java post过来的数据
-    if (qs.data) {
-      qs = JSON.parse(qs.data);
-    }
-
-    // 前台传来的hash值进行16进制转换
-    let qshash = web3.utils.asciiToHex(qs.hash);
-    //let qshash = web3.utils.hexToBytes('0x' + qs.hash);
-
-    // 上链方法
-    Actions.insertHash({
-      data: qshash,
-      res: res
-    });
-    console.log('/insertHash', qshash);
-  })
+app.post("/insertHash", function (req, res) {
+  console.log('/insertHash', qs.hash);
+  // 上链方法
+  Actions.insertHash({
+    data: qs.hash,
+    res: res
+  });
 });　　
 
 app.post("/selectHash", function (req, res) {　　
-  // 初始化socket连接
-  initWeb3Provider();
-  req.on('data', function (chunk) {
-    let result;
-    // 将前台传来的值，转回对象类型
-    qs = querystring.parse(chunk);
-    // 处理java post过来的数据
-    if (qs.data) {
-      qs = JSON.parse(qs.data);
-    }
-    console.log('/selectHash', qs);
-
-    // 前台传来的hash值进行16进制转换
-    let qshash = web3.utils.asciiToHex(qs.hash);
-    //let qshash = web3.utils.hexToBytes('0x' + qs.hash);
-
-    // 查询方法
-    result = Actions.selectHash({
-      data: qshash,
-      res: res
-    });
-  })
+  console.log('/selectHash', qs.hash);
+  // 查询方法
+  result = Actions.selectHash({
+    data: qs.hash,
+    res: res
+  });
 });　　
-
 
 
 app.listen({
@@ -331,3 +322,7 @@ app.listen({
   console.log("server is listening on ", serverConfig.serverHost + ":" + serverConfig.serverPort + "\n");
 });
 
+
+// 取消下面两行注释，即可调用merkleTreeDemo的例子
+//const merkleTreeDemo = require("./merkleTreeDemo.js");
+//merkleTreeDemo();

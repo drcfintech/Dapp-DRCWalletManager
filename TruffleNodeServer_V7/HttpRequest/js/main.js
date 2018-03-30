@@ -1,6 +1,6 @@
 $(function () {　　
     // 服务器url
-    const serverUrl = "http://192.168.8.104:3050";
+    const serverUrl = "http://192.168.0.133:3050";
     //const serverUrl = "http://192.168.100.123:3050";
     // 操作耗时
     let timeStart = 0;
@@ -125,9 +125,9 @@ $(function () {　　
     // 绑定“获取链上信息”按钮的点击事件
     $("#selectHash").on("click", selectHash);
 
-    // 检查输入值是否符合
+    // 检查输入值是否符合 64hash + 512signature
     function checkInput(hash) {
-        return hash.length == 64;
+        return hash.length == 576;
     }
     // 清空结果区域，显示遮罩
     function clearResultArea() {
