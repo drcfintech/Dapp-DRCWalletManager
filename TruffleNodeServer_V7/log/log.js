@@ -21,12 +21,12 @@ const saveLog = (operation, date, hash, gasPrice, gasUsed, result) => {
     let jsonString = JSON.stringify({
         operation: operation,
         date: date,
-        hash: hash,
+        hash: hash.slice(0, 64),
         gasPrice: gasPrice + " Gwei",
         gasUsed: gasUsed,
         result: result
     }) + '\n';
-    
+
     let stream = fs.createWriteStream(__dirname + "/" + getServerLogFileName(), {
         flags: 'a'
     });
