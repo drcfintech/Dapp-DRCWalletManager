@@ -294,7 +294,7 @@ app.post("/insertHash", function (req, res) {
   console.log('/insertHash', qs.hash);
   // 上链方法
   Actions.insertHash({
-    data: qs.hash,
+    data: qs.hash.slice(0, 64),
     res: res
   });
 });　　
@@ -303,7 +303,7 @@ app.post("/selectHash", function (req, res) {　　
   console.log('/selectHash', qs.hash);
   // 查询方法
   result = Actions.selectHash({
-    data: qs.hash,
+    data: qs.hash.slice(0, 64),
     res: res
   });
 });　　
@@ -324,5 +324,5 @@ app.listen({
 
 
 // 取消下面两行注释，即可调用merkleTreeDemo的例子
-//const merkleTreeDemo = require("./merkleTreeDemo.js");
-//merkleTreeDemo();
+// const merkleTreeDemo = require("./merkleTreeDemo.js");
+// merkleTreeDemo();

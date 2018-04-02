@@ -22,5 +22,9 @@ module.exports = {
     insertHashSuccess: {
         status: "success",
         msg: "上链成功"
+    },
+    validationFailed: {
+        status: "failed",
+        msg: "验签失败"
     }
 }
