@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Truffle Demo</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <script src="./app.js"></script>
+</head>
+<body>
+  <h1>区块链Demo</h1>
+
+  <br><label for="identity">ID</label><input type="text" id="identity" ></input>
+  <br><label for="price">价格</label><input type="text" id="price" ></input>
+
+
+  <br><br><button type = "submit" id="send" onclick="App.saveMessage()">提交</button>
+
+  <br><br><button type = "submit" id="get" onclick="App.getMessage()">获取链上信息</button>
+
+  <br><p id = "dataHash"></p>
+  <br><p id = "txHash"></p>
+  <br><p id = "gasUsed"></p>
+  <br><p id = "info"></p>
+  <br><p id = "error"></p>
+
+</body>
+</html>
