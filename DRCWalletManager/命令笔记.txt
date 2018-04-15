@@ -1,0 +1,86 @@
+truffle init
+
+生成package.json 
+    npm init
+
+npm install truffle-contrac --save
+
+npm install web3 --save
+
+npm install promise --save
+
+npm install crypto --save
+
+npm install querystring --save
+
+
+
+
+
+// 查询报错的关键词 Cannot read property 'apply' of undefined  参考 https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+// 修改依赖包 contract.js 
+    line 24.
+    return this.provider.sendAsync.apply(this.provider, arguments);
+    =>
+    return this.provider.send.apply(this.provider, arguments);
+
+编写server代码的注意点
+
+    server允许跨域请求的设置：
+        var server = http.createServer(function (req, res) {　　
+        // 跨域请求允许post
+        res.setHeader('Access-Control-Allow-Origin', '*');　
+        req.setEncoding('utf8');
+        ...
+
+    server启动用到的参数：
+        // 监听的端口
+        const port = 3000;
+        // 本机IP
+        const host = "192.168.100.123";
+
+        server.listen({
+        port: port,
+        host: host
+        }, function () {
+        console.log("server running on port " + port);
+        });
+
+
+服务器端拿到主网络的web3provider
+    //https://github.com/INFURA/infura/issues/29
+
+    const Web3 = require('web3');
+    // 保持infura的socket连接，需要开启全局proxy
+    const web3 = new Web3(new Web3.providers.WebsocketProvider('wss://mainnet.infura.io/ws'));
+
+    const subscription = web3.eth.subscribe('newBlockHeaders', (error, blockHeader) => {
+    if (error) return console.error(error);
+
+    console.log('Successfully subscribed!', blockHeader);
+    }).on('data', (blockHeader) => {
+    console.log('data: ', blockHeader);
+    });
+
+    // unsubscribes the subscription
+    subscription.unsubscribe((error, success) => {
+    if (error) return console.error(error);
+
+    console.log('Successfully unsubscribed!');
+    });
+
+合约sign的注意事项：
+    rawTx的data部分，需要方法和传参的encode数据
+    解决 Error: throw new Error('Given parameter bytes is too long: "' + value + '"');
+        注意着两行代码的参数是否跟智能合约的一致
+        let encodeData_param = web3.eth.abi.encodeParameters(['string'], [dataObject.data]);
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('insertHash(string)');
+    
+    设定rawTx的gas方式为 gasPrice和gasLimit共同设置（需要将10进制做toHex处理）
+    为了解决 ’Returned error: nonce too low‘ 的Error，需要在rawTx中设置noncerror
+        关键字：the Initial Account Nonce
+        https://ethereum.stackexchange.com/questions/12823/proper-transaction-signing/12835#12835
+
+
+
+
