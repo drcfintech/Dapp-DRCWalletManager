@@ -227,9 +227,9 @@ contract DRCWalletManager is OwnerContract {
 
     ERC20 tk;
     
-    event CreateDepositAddress(address _walllet, address _deposit);
-    event FrozenTokens(address _deposit, uint256 _value);
-    event ChangeDefaultWallet(address _oldWallet, address _newWallet);
+    event CreateDepositAddress(address indexed _wallet, address _deposit);
+    event FrozenTokens(address indexed _deposit, uint256 _value);
+    event ChangeDefaultWallet(address indexed _oldWallet, address _newWallet);
 
     function bindToken(address _token) onlyOwner public returns (bool) {
         require(_token != address(0));
@@ -246,6 +246,7 @@ contract DRCWalletManager is OwnerContract {
         depositRepos[deposWithdr].balance = 0;
         depositRepos[deposWithdr].frozen = 0;
         depositRepos[deposWithdr].withdrawWallets.push(WithdrawWallet("default wallet", _wallet));
+        emit CreateDepositAddress(_wallet, deposWithdr);
 
         return deposWithdr;
     }

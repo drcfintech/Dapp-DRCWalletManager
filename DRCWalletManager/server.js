@@ -22,18 +22,18 @@ var Tx = require('ethereumjs-tx');
 const keystore = require(walletConfig.keystore);
 //console.log('keystore  ', keystore);
 // 用户操作
-const operation = ["insertHash", "selectHash"];
+const operation = ["getDepositAddr", "createDepositAddr", "withdraw", "withdrawTo", "freezeToken"];
 
 
 // 智能合约
-const HashDataCon_artifacts = require('./build/contracts/HashDataCon.json');
+const DRCWalletMgr_artifacts = require('./build/contracts/DRCWalletManager.json');
 // 合约发布地址
-const contractAT = HashDataCon_artifacts.networks['4'].address;
+const contractAT = DRCWalletMgr_artifacts.networks['4'].address;
 
 // 合约abi
-const contractABI = HashDataCon_artifacts.abi;
+const contractABI = DRCWalletMgr_artifacts.abi;
 // 初始化合约实例
-let HashDataConContract;
+let DRCWalletMgrContract;
 // 调用合约的账号
 let account;
 
@@ -72,7 +72,7 @@ function initWeb3Provider() {
   // 解决Error：TypeError: Cannot read property 'kdf' of undefined
   account = web3.eth.accounts.decrypt(JSON.parse(JSON.stringify(keystore).toLowerCase()), walletConfig.password)
   web3.eth.defaultAccount = account.address;
-  //console.log('web3.eth.defaultAccount : ', web3.eth.defaultAccount);
+  console.log('web3.eth.defaultAccount : ', web3.eth.defaultAccount);
 
   if (typeof web3.eth.getAccountsPromise === 'undefined') {
     //console.log('解决 Error: Web3ProviderEngine does not support synchronous requests.');
@@ -87,16 +87,16 @@ function initWeb3Provider() {
 var Actions = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
   start: function () {
-    HashDataConContract = new web3.eth.Contract(contractABI, contractAT, {});
-    HashDataConContract.setProvider(web3.currentProvider);
+    DRCWalletMgrContract = new web3.eth.Contract(contractABI, contractAT, {});
+    DRCWalletMgrContract.setProvider(web3.currentProvider);
   },
 
   // 往链上存数据
-  insertHash: function (data) {
+  createDepositAddr: function (data) {
     let dataObject = data;
 
     // 上链步骤：查询没有结果之后再上链
-    HashDataConContract.methods.selectHash(dataObject.data).call((error, result) => {
+    DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((error, result) => {
       if (error) {
         // 以太坊虚拟机的异常
         dataObject.res.end(JSON.stringify(responceData.evmError));
@@ -105,25 +105,29 @@ var Actions = {
         return;
       }
 
-      console.log(' 上链前的查询结果   \n', result);
+      console.log(' 充值地址查询结果   \n', result);
+      console.log(' 充值地址详细查询结果   \n', result['0']);
       // 返回值显示已经有该hash的记录
-      if (result && result['0'] == true) {
-        dataObject.res.end(JSON.stringify(responceData.hashAlreadyInserted));
+      if (result && result['0'] != 0) {
+        dataObject.res.end(JSON.stringify(responceData.depositAlreadyExist));
         // 保存log
-        log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.hashAlreadyInserted);
+        log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.depositAlreadyExist);
 
         return;
       }
 
-      if (result && !result['0']) {
+      if (result && result['0'] == 0) {
         // 新建空对象，作为http请求的返回值
         let returnObject = {};
         let gasPrice;
 
         // 拿到rawTx里面的data部分
+        console.log(dataObject.data);
         let encodeData_param = web3.eth.abi.encodeParameters(['string'], [dataObject.data]);
-        let encodeData_function = web3.eth.abi.encodeFunctionSignature('insertHash(string)');
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('createDepositContract(string)');
+        console.log(encodeData_function);
         let encodeData = encodeData_function + encodeData_param.slice(2);
+        console.log(encodeData);
 
 
         // 获取账户余额  警告 要大于 0.001Eth
@@ -180,22 +184,24 @@ var Actions = {
             // 签好的tx发送到链上
             web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
               .on('receipt', (receipt) => {
+                console.log(receipt);
                 resolve(receipt);
               });
           })
         }
         // 上链结果响应到请求方
         const returnResult = (result) => {
-
-          returnObject = responceData.insertHashSuccess;
-          returnObject.data = result;
+          console.log(result);
+          returnObject = responceData.createDepositAddrSuccess;
+          returnObject.txHash = result.transactionHash;
+          returnObject.gasUsed = result.gasUsed;
           returnObject.gasPrice = gasPrice;
           // 返回success 附带message
           dataObject.res.end(JSON.stringify(returnObject));
           // 重置
           returnObject = {};
           // 保存log
-          log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.insertHashSuccess);
+          log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
 
 
@@ -206,7 +212,7 @@ var Actions = {
                 nonce: values[0],
                 to: contractAT,
                 gasPrice: values[1],
-                gasLimit: web3.utils.toHex(4700000),
+                gasLimit: web3.utils.toHex(5900000),
                 data: encodeData
               };
               return rawTx;
@@ -236,18 +242,18 @@ var Actions = {
   },
 
   // 去链上查询结果
-  selectHash: function (data) {
+  getDepositAddr: function (data) {
     let dataObject = data;
 
-    HashDataConContract.methods.selectHash(dataObject.data).call((err, result) => {
+    DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((err, result) => {
       if (err || !result["0"]) {
         // 返回failed 附带message
-        dataObject.res.end(JSON.stringify(responceData.selectHashFailed));
+        dataObject.res.end(JSON.stringify(responceData.getDepositAddrFailed));
         // 保存log
         // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
         return;
       }
-      let returnObject = responceData.selectHashSuccess;
+      let returnObject = responceData.getDepositAddrSuccess;
       returnObject.data = result;
       // 返回success 附带message
       dataObject.res.end(JSON.stringify(returnObject));
@@ -277,33 +283,33 @@ app.use((req, res, next) => {
 });
 
 // 验签模块
-app.use((req, res, next) => {
-  if (validation.validate(qs.hash)) {
-    next();
-  } else {
-    // 验签不通过，返回错误信息
-    res.end(JSON.stringify(responceData.validationFailed));
-  };
-});
+// app.use((req, res, next) => {
+//   if (validation.validate(qs.hash)) {
+//     next();
+//   } else {
+//     // 验签不通过，返回错误信息
+//     res.end(JSON.stringify(responceData.validationFailed));
+//   };
+// });
 
 
 /**********************************************/
 /**************SERVER
 /**********************************************/
-app.post("/insertHash", function (req, res) {
-  console.log('/insertHash', qs.hash);
+app.post("/createDepositAddr", function (req, res) {
+  console.log('/createDepositAddr', qs.hash);
   // 上链方法
-  Actions.insertHash({
-    data: qs.hash.slice(0, 64),
+  Actions.createDepositAddr({
+    data: qs.hash.slice(0, 42),
     res: res
   });
 });　　
 
-app.post("/selectHash", function (req, res) {　　
-  console.log('/selectHash', qs.hash);
+app.post("/getDepositAddr", function (req, res) {　　
+  console.log('/getDepositAddr', qs.hash);
   // 查询方法
-  result = Actions.selectHash({
-    data: qs.hash.slice(0, 64),
+  result = Actions.getDepositAddr({
+    data: qs.hash.slice(0, 42),
     res: res
   });
 });　　

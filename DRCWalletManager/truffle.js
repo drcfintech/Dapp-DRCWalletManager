@@ -4,7 +4,7 @@ const Web3 = require('web3');
 const walletConfig = require('./config/walletConfig.json');
 
 
-var infura_apikey = "9rWQxDtU4uAbAWdFFSAR";
+var infura_apikey = "0wkI1EZkxq3GUs5b2vaK";
 
 module.exports = {
   networks: {
@@ -18,7 +18,7 @@ module.exports = {
       network_id: 3
     },
     rinkeby: {
-      provider: new HDWalletProvider(walletConfig.mnemonic, "https://rinkeby.infura.io/" + infura_apikey, 24),
+      provider: new HDWalletProvider(walletConfig.mnemonic, "https://rinkeby.infura.io/" + infura_apikey),
       network_id: 4
     }
   }

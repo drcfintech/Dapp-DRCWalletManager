@@ -1,6 +1,6 @@
 $(function () {　　
     // 服务器url
-    const serverUrl = "http://192.168.0.133:3050";
+    const serverUrl = "http://127.0.0.1:3050";
     //const serverUrl = "http://192.168.100.123:3050";
     // 操作耗时
     let timeStart = 0;
@@ -12,21 +12,21 @@ $(function () {　　
 
 
     // “提交”按钮的点击事件
-    let insertHash = function () {　
+    let createDepositAddr = function () {　
         let hash = $("#hash").val().trim();
         // 前处理
         clearResultArea();
         if (!checkInput(hash)) {
-            $("#error").html("ERRO: 请正确输入64位Hash值 <br>");
+            $("#error").html("ERRO: 请正确输入40位地址值，以0x开头 <br>");
             $('#loader').hide();
             return;
         };
         // 输入check通过之后，防止二重提交
-        $("#insertHash,#selectHash").attr("disabled", true);
+        $("#createDepositAddr,#getDepositAddr").attr("disabled", true);
         timeStart = new Date();
 
         $.ajax({　　　　　　
-            url: serverUrl + '/insertHash',
+            url: serverUrl + '/createDepositAddr',
             method: "POST",
             data: {
                 hash: hash
@@ -36,7 +36,7 @@ $(function () {　　
                 // 隐藏加载遮罩
                 $('#loader').hide();
                 // 恢复按钮功能样式
-                $("#insertHash,#selectHash").attr("disabled", false);
+                $("#createDepositAddr,#getDepositAddr").attr("disabled", false);
 
                 if (!data) {
                     $("#error").html("ERRO: 服务器返回值为空 <br>");
@@ -46,9 +46,9 @@ $(function () {　　
                 $("#acctionResult").html("操作状态 " + dataObject.status + "  " + dataObject.msg);
                 if (dataObject.status == status.statusFailed) return;
                 //上链后，server端的返回值
-                $("#txHash").html("txHash " + dataObject.data.transactionHash ||
+                $("#txHash").html("txHash " + dataObject.txHash ||
                     "empty data");
-                $('#gasUsed').html("gasUsed " + dataObject.data.gasUsed ||
+                $('#gasUsed').html("gasUsed " + dataObject.gasUsed ||
                     "empty data");
                 $('#gasPrice').html("gasPrice " + parseInt(dataObject.gasPrice) +
                     " gwei " ||
@@ -61,26 +61,26 @@ $(function () {　　
                 // 隐藏加载遮罩
                 $('#loader').hide();
                 // 恢复按钮功能样式
-                $("#insertHash,#selectHash").attr("disabled", false);
+                $("#createDepositAddr,#getDepositAddr").attr("disabled", false);
             }　　　　
         });　　
     };
     // “获取链上信息”按钮的点击事件
-    let selectHash = function () {
+    let getDepositAddr = function () {
         let hash = $("#hash").val().trim();
         // 前处理
         clearResultArea();
         if (!checkInput(hash)) {
-            $("#error").html("ERRO: 请正确输入64位Hash值 <br>");
+            $("#error").html("ERRO: 请正确输入40位地址值，以0x开头 <br>");
             $('#loader').hide();
             return;
         };
         // 输入check通过之后，防止二重提交
-        $("#insertHash,#selectHash").attr("disabled", true);
+        $("#createDepositAddr,#getDepositAddr").attr("disabled", true);
         timeStart = new Date();
 
         $.ajax({　
-            url: serverUrl + "/selectHash",
+            url: serverUrl + "/getDepositAddr",
             method: "POST",
             data: {
                 hash: hash
@@ -90,7 +90,7 @@ $(function () {　　
                 // 隐藏加载遮罩
                 $('#loader').hide();
                 // 恢复按钮功能样式
-                $("#insertHash,#selectHash").attr("disabled", false);
+                $("#createDepositAddr,#getDepositAddr").attr("disabled", false);
                 if (!data) {
                     $("#error").html("ERRO: 服务器返回值为空 <br>");
                     return;
@@ -100,9 +100,9 @@ $(function () {　　
                 if (dataObject.status == status.statusFailed) return;
                 //链上查询返回值第一个为false：该hash没有上链记录
 
-                let time = new Date(dataObject.data[2] * 1000).toLocaleString();
+                // let time = new Date(dataObject.data[2] * 1000).toLocaleString();
 
-                let infoTemp = `上链账号 ${dataObject.data[1] || "empty data" } <br><br> 上链时间 ${time || "empty data"}`;
+                let infoTemp = `充值地址 ${dataObject.data[0] || "empty data" } <br><br>`;
                 $("#info").html(infoTemp || "empty data");
 
                 $("#timer").html("耗时 " + (timeEnd - timeStart) / 1000 + " s");
@@ -114,20 +114,20 @@ $(function () {　　
                 // 隐藏加载遮罩
                 $('#loader').hide();
                 // 恢复按钮功能样式
-                $("#insertHash,#selectHash").attr("disabled", false);
+                $("#createDepositAddr,#getDepositAddr").attr("disabled", false);
             }　
         })
     }
 
     // 绑定“提交”按钮的点击事件
-    $("#insertHash").on("click", insertHash);
+    $("#createDepositAddr").on("click", createDepositAddr);
 
     // 绑定“获取链上信息”按钮的点击事件
-    $("#selectHash").on("click", selectHash);
+    $("#getDepositAddr").on("click", getDepositAddr);
 
     // 检查输入值是否符合 64hash + 512signature
     function checkInput(hash) {
-        return hash.length == 576;
+        return hash.length == 42;
     }
     // 清空结果区域，显示遮罩
     function clearResultArea() {
