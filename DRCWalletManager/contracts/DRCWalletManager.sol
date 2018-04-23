@@ -69,7 +69,7 @@ contract DepositWithdraw is Claimable, Pausable, Destructible, TokenDestructible
     event WithdrawToken(address _token, address _to, uint256 _value);
 
     
-    function DepositWithdraw(address _wallet) public {
+    constructor(address _wallet) public {
         require(_wallet != address(0));
         wallet = _wallet;
     }
