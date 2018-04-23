@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 
 import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
@@ -245,7 +245,8 @@ contract DRCWalletManager is OwnerContract {
         walletDeposits[_wallet] = deposWithdr;
         depositRepos[deposWithdr].balance = 0;
         depositRepos[deposWithdr].frozen = 0;
-        depositRepos[deposWithdr].withdrawWallets.push(WithdrawWallet("default wallet", _wallet));
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[deposWithdr].withdrawWallets;
+        withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
         emit CreateDepositAddress(_wallet, deposWithdr);
 
         return deposWithdr;
@@ -253,34 +254,42 @@ contract DRCWalletManager is OwnerContract {
 
     function getDepositAddress(address _wallet) onlyOwner public view returns (address) {
         require(_wallet != address(0));
+        address deposit = walletDeposits[_wallet];
 
-        return walletDeposits[_wallet];
+        return deposit;
     }
 
     function getDepositInfo(address _deposit) onlyOwner public returns (uint256, uint256) {
         require(_deposit != address(0));
+        uint256 _balance = tk.balanceOf(_deposit);
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        depositRepos[_deposit].balance = _balance;
 
-        depositRepos[_deposit].balance = tk.balanceOf(_deposit);
-        return (depositRepos[_deposit].balance, depositRepos[_deposit].frozen);
+        return (_balance, frozenAmount);
     }
 
     function getDepositBalance(address _deposit) onlyOwner public returns (uint256) {
         require(_deposit != address(0));
+        uint256 _balance = tk.balanceOf(_deposit);
 
-        depositRepos[_deposit].balance = tk.balanceOf(_deposit);
-        return depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance;
+        return _balance;
     }
 
     function getDepositFrozen(address _deposit) onlyOwner public view returns (uint256) {
         require(_deposit != address(0));
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
 
-        return depositRepos[_deposit].frozen;
+        return frozenAmount;
     }
 
     function getDepositWithdrawCount(address _deposit) onlyOwner public view returns (uint) {
         require(_deposit != address(0));
 
-        return depositRepos[_deposit].withdrawWallets.length;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        uint len = withdrawWalletList.length;
+
+        return len;
     }
 
     function getDepositWithdrawList(address _deposit, uint[] _indices) onlyOwner public view returns (bytes32[], address[]) {
@@ -305,7 +314,8 @@ contract DRCWalletManager is OwnerContract {
         DepositWithdraw deposWithdr = DepositWithdraw(deposit);
         require(deposWithdr.setWithdrawWallet(_newWallet));
 
-        depositRepos[deposit].withdrawWallets[0].walletAddr = _newWallet;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[deposit].withdrawWallets;
+        withdrawWalletList[0].walletAddr = _newWallet;
         emit ChangeDefaultWallet(_oldWallet, _newWallet);
 
         return true;
@@ -324,7 +334,10 @@ contract DRCWalletManager is OwnerContract {
     function withdraw(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_value <= depositRepos[_deposit].balance);
-        require(_value <= depositRepos[_deposit].balance.sub(depositRepos[_deposit].frozen));
+
+        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        require(_value <= _balance.sub(frozenAmount));
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawTokenToDefault(tk, _time, _value));
@@ -341,17 +354,22 @@ contract DRCWalletManager is OwnerContract {
 
         return (false, true);
     }
+
     function withdraw(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_to != address(0));
         require(_value <= depositRepos[_deposit].balance);
-        require(_value <= depositRepos[_deposit].balance.sub(depositRepos[_deposit].frozen));
+
+        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        require(_value <= _balance.sub(frozenAmount));
 
         bool exist;
         bool correct;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
         if(!exist) {
-            depositRepos[_deposit].withdrawWallets.push(WithdrawWallet(_name, _to));
+            withdrawWalletList.push(WithdrawWallet(_name, _to));
         } else if(!correct) {
             return false;
         }
