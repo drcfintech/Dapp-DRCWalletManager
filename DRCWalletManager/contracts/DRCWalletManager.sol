@@ -222,7 +222,7 @@ contract DRCWalletManager is OwnerContract {
     }
 
     mapping (address => DepositRepository) depositRepos;
-    mapping (address => address) walletDeposits;
+    mapping (address => address) public walletDeposits;
     mapping (address => bool) frozenDeposits;
 
     ERC20 tk;
