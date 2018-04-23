@@ -123,8 +123,8 @@ var Actions = {
 
         // 拿到rawTx里面的data部分
         console.log(dataObject.data);
-        let encodeData_param = web3.eth.abi.encodeParameters(['string'], [dataObject.data]);
-        let encodeData_function = web3.eth.abi.encodeFunctionSignature('createDepositContract(string)');
+        let encodeData_param = web3.eth.abi.encodeParameters(['address'], [dataObject.data]);
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('createDepositContract(address)');
         console.log(encodeData_function);
         let encodeData = encodeData_function + encodeData_param.slice(2);
         console.log(encodeData);
