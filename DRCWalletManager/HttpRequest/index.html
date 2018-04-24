@@ -11,18 +11,25 @@
 
 <body>
     <img id='logo' src="https://avatars1.githubusercontent.com/u/34734566?s=460&v=4">
-    <h1>DRC Hash上链Demo</h1>
+    <h1>DRC Wallet Manager Demo</h1>
 
     <br>
     <input type="text" id="hash" placeholder="请输入64位Hash值" value="ee0fadc8dad2fc978f48b7a5897dc5fa5f1f0c5bbf9ee66779690b773682918c37401bda3ec68830eb6e5a7ccecd533fc22234ddccd05817b7314ed273ecadb03f27ebe162cddcb0ddb0ea1c1c7cbf9d4495f321077f5c149e05103f1eb21616000e9a3e1c884df9c39a4fe8ba2406e06ad3d48adf0d785a16a45e962b644dd9885a8092e5722c5b489fd40a4e90570d46bb037b6588757bcde13b40e3bd8a874e7f746376048bf23a137ae59b78793b981e5f68f9b736456a16408dbd4ba90ebce503fbdb1f78f18cd007715dd1fb3ff1fb9a586514ff062c977116168e7f0487c4ea8e170926987329f946732c6c04100135bb202b3b3a29fc7a12c45cb6510655621c5520c40cea0a3687e9d4e4f980550c04cc614670257126b4b7884baa"></input>
     <br>
+    <br>
+    <input type="text" id="value" placeholder="请输入提现金额" value="10000"></input>
+    <br>
 
     <br>
-    <button id="insertHash">上链</button>
+    <button id="createDepositAddr">create deposit address</button>
 
     <br>
     <br>
-    <button id="selectHash">链上查询</button>
+    <button id="getDepositAddr">get deposit address</button>
+    <br>
+
+    <br>
+    <button id="withdraw">withdraw</button>
 
 
     <div id="resultArea">
@@ -36,6 +43,7 @@
         <p id="txHash"></p>
         <p id="gasUsed"></p>
         <p id="gasPrice"></p>
+        <p id="depositAddress"></p>
 
         <br>
         <p id="info"></p>
