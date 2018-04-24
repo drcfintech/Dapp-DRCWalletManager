@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.21;
 
 
 import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
@@ -52,6 +52,8 @@ contract OwnerContract is Claimable {
 }
 
 contract DepositWithdraw is Claimable, Pausable, Destructible, TokenDestructible {
+    using SafeMath for uint256;
+
     struct TransferRecord {
         uint256 timeStamp;
         address account;
@@ -135,11 +137,36 @@ contract DepositWithdraw is Claimable, Pausable, Destructible, TokenDestructible
      *
      * @param _token the token address that will be withdraw
 	 * @param _to is where the tokens will be sent to
-	 *        _value is the number of the ether
+	 *        _value is the number of the token
+     *        _fee is the amount of the transferring costs
+     *        —tokenReturn is the address that return back the tokens of the _fee
+	 */
+    function withdrawToken(address _token, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+        require(_to != address(0));
+        require(_token != address(0));
+        require(_value > _fee);
+        require(_tokenReturn != address(0));
+
+        ERC20 tk = ERC20(_token);
+        uint256 realAmount = _value.sub(_fee);
+        tk.transfer(_to, realAmount);
+        tk.transfer(_tokenReturn, _fee);
+        withdrRecs.push(TransferRecord(_time, _to, realAmount));
+        emit WithdrawToken(_token, _to, realAmount);
+
+        return true;
+    }
+
+    /**
+	 * @dev withdraw tokens, send tokens to target
+     *
+     * @param _token the token address that will be withdraw
+	 * @param _to is where the tokens will be sent to
+	 *        _value is the number of the token
 	 */
     function withdrawToken(address _token, uint256 _time, address _to, uint256 _value) public onlyOwner whenNotPaused returns (bool) {
-        require(_to != 0);
-        require(_token != 0);
+        require(_to != address(0));
+        require(_token != address(0));
 
         ERC20 tk = ERC20(_token);
         tk.transfer(_to, _value);
@@ -154,17 +181,23 @@ contract DepositWithdraw is Claimable, Pausable, Destructible, TokenDestructible
      *
      * @param _token the token address that will be withdraw
      * @param _time the timestamp occur the withdraw record
-	 * @param _value is the number of the ether
+	 * @param _value is the number of the token
 	 */
     function withdrawTokenToDefault(address _token, uint256 _time, uint256 _value) public onlyOwner whenNotPaused returns (bool) {
-        require(_token != 0);
+        return withdrawToken(_token, _time, wallet, _value);
+    }
 
-        ERC20 tk = ERC20(_token);
-        tk.transfer(wallet, _value);
-        withdrRecs.push(TransferRecord(_time, wallet, _value));
-        emit WithdrawToken(_token, wallet, _value);
-
-        return true;
+    /**
+	 * @dev withdraw tokens, send tokens to target default wallet
+     *
+     * @param _token the token address that will be withdraw
+     * @param _time the timestamp occur the withdraw record
+	 * @param _value is the number of the token
+     *        _fee is the amount of the transferring costs
+     *        —tokenReturn is the address that return back the tokens of the _fee
+	 */
+    function withdrawTokenToDefault(address _token, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+        return withdrawToken(_token, _time, wallet, _value, _fee, _tokenReturn);
     }
 
     /**
@@ -226,6 +259,8 @@ contract DRCWalletManager is OwnerContract {
     mapping (address => bool) frozenDeposits;
 
     ERC20 tk;
+    address tokenReturn;
+    uint256 chargeFee;
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, uint256 _value);
@@ -236,6 +271,15 @@ contract DRCWalletManager is OwnerContract {
 
         tk = ERC20(_token);
         return true;
+    }
+
+    function setTokenReturnAddress(address _tokenReturn) onlyOwner public {
+        require(_tokenReturn != address(0));
+        tokenReturn = _tokenReturn;
+    }
+
+    function setChargeFee(uint256 _fee) onlyOwner public {
+        chargeFee = _fee;
     }
 
     function createDepositContract(address _wallet) onlyOwner public returns (address) {
@@ -343,6 +387,18 @@ contract DRCWalletManager is OwnerContract {
         return (deposWithdr.withdrawTokenToDefault(tk, _time, _value));
     }
 
+    function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
+        require(_deposit != address(0));
+        require(_value <= depositRepos[_deposit].balance);
+
+        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        require(_value <= _balance.sub(frozenAmount));
+
+        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
+        return (deposWithdr.withdrawTokenToDefault(tk, _time, _value, chargeFee, tokenReturn));
+    }
+
     function checkWithdrawAddress(address _deposit, bytes32 _name, address _to) public view returns (bool, bool) {
         uint len = depositRepos[_deposit].withdrawWallets.length;
         for (uint i = 0; i < len; i = i.add(1)) {
@@ -376,6 +432,29 @@ contract DRCWalletManager is OwnerContract {
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawToken(tk, _time, _to, _value));        
+    }
+
+    function withdrawWithFee(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
+        require(_deposit != address(0));
+        require(_to != address(0));
+        require(_value <= depositRepos[_deposit].balance);
+
+        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        require(_value <= _balance.sub(frozenAmount));
+
+        bool exist;
+        bool correct;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
+        if(!exist) {
+            withdrawWalletList.push(WithdrawWallet(_name, _to));
+        } else if(!correct) {
+            return false;
+        }
+
+        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
+        return (deposWithdr.withdrawToken(tk, _time, _to, _value, chargeFee, tokenReturn));        
     }
 
 }
