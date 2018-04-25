@@ -254,9 +254,9 @@ contract DRCWalletManager is OwnerContract {
         // mapping (bytes32 => address) withdrawWallets;
     }
 
-    mapping (address => DepositRepository) depositRepos;
+    mapping (address => DepositRepository) public depositRepos;
     mapping (address => address) public walletDeposits;
-    mapping (address => bool) frozenDeposits;
+    mapping (address => bool) public frozenDeposits;
 
     ERC20 tk;
     address tokenReturn;
