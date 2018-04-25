@@ -168,8 +168,11 @@ var Actions = {
               //resolve(web3.utils.toHex(result));
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
-              // if (gasPrice < 2.5) result = 4000000000;
-              resolve(web3.utils.toHex(result * 1.25));
+              if (gasPrice > 2.5) {
+                result = 4000000000;
+              } else {
+                resolve(web3.utils.toHex(result * 1.5));
+              }
             })
           })
         }
@@ -282,7 +285,7 @@ var Actions = {
         // 以太坊虚拟机的异常
         dataObject.res.end(JSON.stringify(responceData.evmError));
         // 保存log
-        log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
         return;
       }
 
@@ -292,7 +295,7 @@ var Actions = {
       if (result['0'] < requestObject.value || (result['0'] - result['1']) < requestObject.value) {
         dataObject.res.end(JSON.stringify(responceData.notEnoughBalance));
         // 保存log
-        log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.notEnoughBalance);
+        log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.notEnoughBalance);
 
         return;
       }
@@ -318,7 +321,7 @@ var Actions = {
             if (error) {
               dataObject.res.end(JSON.stringify(responceData.evmError));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+              log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
               return;
             }
             console.log('balance =>', balance);
@@ -326,7 +329,7 @@ var Actions = {
               // 返回failed 附带message
               dataObject.res.end(JSON.stringify(responceData.lowBalance));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
+              log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.lowBalance);
               return;
             }
             callback();
@@ -379,7 +382,7 @@ var Actions = {
           status = web3.utils.hexToNumber(result.status);
           if (!status) {
             dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
-            log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.withdrawFailed);
+            log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
             return;
           }
@@ -398,7 +401,7 @@ var Actions = {
           // 重置
           returnObject = {};
           // 保存log
-          log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
+          log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
 
 
@@ -427,7 +430,7 @@ var Actions = {
                 // 重置
                 returnObject = {};
                 // 保存log
-                log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+                log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
                 return;
               }
             })
@@ -488,10 +491,11 @@ app.post("/getDepositAddr", function (req, res) {　　
 });　　
 
 app.post("/withdraw", function (req, res) {　　
-  console.log('/withdraw', qs.hash);
+  console.log('/withdraw from', qs.depositAddress);
+  console.log('/withdraw value', qs.value);
   // 查询方法
   result = Actions.withdraw({
-    data: qs.hash.slice(0, 42),
+    data: qs,
     res: res
   });
 });　　
@@ -506,7 +510,7 @@ app.listen({
   // 初始化
   Actions.start();
   // 定时发邮件
-  timer.TimerSendMail();
+  // timer.TimerSendMail();
   console.log("server is listening on ", serverConfig.serverHost + ":" + serverConfig.serverPort + "\n");
 });
 
