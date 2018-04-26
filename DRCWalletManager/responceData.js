@@ -15,9 +15,17 @@ module.exports = {
         status: "failed",
         msg: "其他"
     },
+    addressError: {
+        status: "failed",
+        msg: "地址不合法"
+    },
     getDepositAddrSuccess: {
         status: "success",
         msg: "获取充值地址成功"
+    },
+    getDepositAddrFailed: {
+        status: "failed",
+        msg: "获取充值地址失败"
     },
     withdrawSuccess: {
         status: "success",

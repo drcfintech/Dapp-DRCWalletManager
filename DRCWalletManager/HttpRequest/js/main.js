@@ -1,7 +1,7 @@
 $(function () {　　
     // 服务器url
     // const serverUrl = "http://127.0.0.1:3050";
-    const serverUrl = "http://115.28.161.139:5030";
+    const serverUrl = "http://dapp.dev.rcitech.cn:5030";
     //const serverUrl = "http://192.168.100.123:3050";
     // 操作耗时
     let timeStart = 0;

@@ -93,6 +93,15 @@ var Actions = {
   createDepositAddr: function (data) {
     let dataObject = data;
 
+    // first check address is valid
+    if (!web3.utils.isAddress(dataObject.data)) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.addressError));
+      // 保存log
+      log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      return;
+    }
+
     // 上链步骤：查询没有结果之后再上链
     DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((error, result) => {
       if (error) {
@@ -255,9 +264,18 @@ var Actions = {
   getDepositAddr: function (data) {
     let dataObject = data;
 
+    if (!web3.utils.isAddress(dataObject.data)) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.addressError));
+      // 保存log
+      log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      return;
+    }
+
     DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((err, result) => {
       var resultValue = web3.utils.hexToNumberString(result);
       if (err || resultValue == "0") {
+        console.log(err);
         // 返回failed 附带message
         dataObject.res.end(JSON.stringify(responceData.getDepositAddrFailed));
         // 保存log
@@ -278,6 +296,14 @@ var Actions = {
   withdraw: function (data) {
     let dataObject = data;
     let requestObject = dataObject.data;
+
+    if (!web3.utils.isAddress(requestObject.depositAddress)) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.addressError));
+      // 保存log
+      log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      return;
+    }
 
     // 上链步骤：查询没有结果之后再上链
     DRCWalletMgrContract.methods.getDepositInfo(requestObject.depositAddress).call((error, result) => {
