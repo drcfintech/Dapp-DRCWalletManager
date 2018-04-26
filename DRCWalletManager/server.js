@@ -145,7 +145,7 @@ var Actions = {
             if (error) {
               dataObject.res.end(JSON.stringify(responceData.evmError));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+              log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
               return;
             }
             console.log('balance =>', balance);
@@ -153,7 +153,7 @@ var Actions = {
               // 返回failed 附带message
               dataObject.res.end(JSON.stringify(responceData.lowBalance));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
+              log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
               return;
             }
             callback();
@@ -249,7 +249,7 @@ var Actions = {
                 // 重置
                 returnObject = {};
                 // 保存log
-                log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+                log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
                 return;
               }
             })
@@ -268,7 +268,7 @@ var Actions = {
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.addressError));
       // 保存log
-      log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
       return;
     }
 
@@ -279,7 +279,7 @@ var Actions = {
         // 返回failed 附带message
         dataObject.res.end(JSON.stringify(responceData.getDepositAddrFailed));
         // 保存log
-        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+        // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, responceData.getDepositAddrFailed);
         return;
       }
       let returnObject = responceData.getDepositAddrSuccess;
@@ -289,7 +289,7 @@ var Actions = {
       // 重置
       returnObject = {};
       // 保存log
-      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+      // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
     });
   },
 
@@ -301,7 +301,7 @@ var Actions = {
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.addressError));
       // 保存log
-      log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      log.saveLog(operation[2], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
       return;
     }
 
@@ -311,7 +311,7 @@ var Actions = {
         // 以太坊虚拟机的异常
         dataObject.res.end(JSON.stringify(responceData.evmError));
         // 保存log
-        log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
+        log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
         return;
       }
 
@@ -321,7 +321,7 @@ var Actions = {
       if (result['0'] < requestObject.value || (result['0'] - result['1']) < requestObject.value) {
         dataObject.res.end(JSON.stringify(responceData.notEnoughBalance));
         // 保存log
-        log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.notEnoughBalance);
+        log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.notEnoughBalance);
 
         return;
       }
@@ -347,7 +347,7 @@ var Actions = {
             if (error) {
               dataObject.res.end(JSON.stringify(responceData.evmError));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
               return;
             }
             console.log('balance =>', balance);
@@ -355,7 +355,7 @@ var Actions = {
               // 返回failed 附带message
               dataObject.res.end(JSON.stringify(responceData.lowBalance));
               // 保存log
-              log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.lowBalance);
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.lowBalance);
               return;
             }
             callback();
@@ -408,7 +408,7 @@ var Actions = {
           status = web3.utils.hexToNumber(result.status);
           if (!status) {
             dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
-            log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
+            log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
             return;
           }
@@ -427,7 +427,7 @@ var Actions = {
           // 重置
           returnObject = {};
           // 保存log
-          log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
+          log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
 
 
@@ -456,7 +456,7 @@ var Actions = {
                 // 重置
                 returnObject = {};
                 // 保存log
-                log.saveLog(operation[0], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
+                log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
                 return;
               }
             })
