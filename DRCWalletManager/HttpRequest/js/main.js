@@ -1,7 +1,7 @@
 $(function () {　　
     // 服务器url
-    // const serverUrl = "http://127.0.0.1:3050";
-    const serverUrl = "http://dapp.dev.rcitech.cn:5030";
+    const serverUrl = "http://127.0.0.1:3050";
+    // const serverUrl = "http://dapp.dev.rcitech.cn:5030";
     //const serverUrl = "http://192.168.100.123:3050";
     // 操作耗时
     let timeStart = 0;
@@ -126,6 +126,7 @@ $(function () {　　
     // “提交”按钮的点击事件
     let queryDepositRecords = function () {　
         let hash = $("#hash").val().trim();
+
         // 前处理
         clearResultArea();
         // if (!checkInput(hash)) {
@@ -164,14 +165,17 @@ $(function () {　　
                     "empty data");
                   $('#gasUsed').html("gasUsed " + dataRecords[i].gasUsed ||
                     "empty data");
-                  $('#gasPrice').html("gasPrice " + parseInt(dataRecords[i].gasPrice) +
-                    " gwei " ||
+                  $('#gasPrice').html("gasPrice " + parseInt(dataRecords[i].gasPrice) + " gwei " ||
+                    "empty data");
+                  $('#blockNumber').html("block number " + parseInt(dataRecords[i].blockNumber) ||
+                    "empty data");
+                  $('#blockConfirm').html("block confirmed number " + parseInt(dataRecords[i].blockConfrimNum) ||
                     "empty data");
                   $('#depositAddress').html("fromAddress " + dataRecords[i].from ||
                       "empty data");
                   $('#toAddress').html("toAddress " + dataRecords[i].to ||
                     "empty data");
-                  $('#depositValue').html("deposit value " + dataRecords[i].value ||
+                  $('#depositValue').html("deposit value " + parseInt(dataRecords[i].value) / 1e18 ||
                     "empty data");
                   $("#timer").html("耗时 " + (timeEnd - timeStart) / 1000 + " s");
                 }
@@ -263,7 +267,7 @@ $(function () {　　
     // 绑定“提交”按钮的点击事件
     $("#withdraw").on("click", withdraw);
 
-    $("queryDepositTxs").on("click", queryDepositRecords);
+    $("#queryDepositTxs").on("click", queryDepositRecords);
 
     // 检查输入值是否符合 64hash + 512signature
     function checkInput(hash) {
