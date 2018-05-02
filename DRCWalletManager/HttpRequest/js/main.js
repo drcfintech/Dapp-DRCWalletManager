@@ -68,6 +68,7 @@ $(function () {　　
             }　　　　
         });　　
     };
+
     // “获取链上信息”按钮的点击事件
     let getDepositAddr = function () {
         let hash = $("#hash").val().trim();
@@ -120,7 +121,71 @@ $(function () {　　
                 $("#createDepositAddr,#getDepositAddr,#withdraw").attr("disabled", false);
             }　
         })
-    }
+    };
+
+    // “提交”按钮的点击事件
+    let queryDepositRecords = function () {　
+        let hash = $("#hash").val().trim();
+        // 前处理
+        clearResultArea();
+        // if (!checkInput(hash)) {
+        //     $("#error").html("ERRO: 请正确输入40位地址值，以0x开头 <br>");
+        //     $('#loader').hide();
+        //     return;
+        // };
+        // 输入check通过之后，防止二重提交
+        $("#createDepositAddr,#getDepositAddr,#withdraw").attr("disabled", true);
+        timeStart = new Date();
+
+        $.ajax({　　　　　　
+            url: serverUrl + '/getDepositTxs',
+            method: "POST",
+            data: {
+                hash: hash
+            },
+            success: function (data) {
+                timeEnd = new Date();
+                // 隐藏加载遮罩
+                $('#loader').hide();
+                // 恢复按钮功能样式
+                $("#createDepositAddr,#getDepositAddr,#withdraw").attr("disabled", false);
+
+                if (!data) {
+                    $("#error").html("ERRO: 服务器返回值为空 <br>");
+                    return;
+                }
+                let dataObject = $.parseJSON(data);　　　　　　
+                $("#acctionResult").html("操作状态 " + dataObject.status + "  " + dataObject.msg);
+                if (dataObject.status == status.statusFailed) return;
+                //上链后，server端的返回值
+                let dataRecords = dataObject.records;
+                for (var i = 0; i < dataRecords.length; i++) {
+                  $("#txHash").html("txHash " + dataRecords[i].txHash ||
+                    "empty data");
+                  $('#gasUsed').html("gasUsed " + dataRecords[i].gasUsed ||
+                    "empty data");
+                  $('#gasPrice').html("gasPrice " + parseInt(dataRecords[i].gasPrice) +
+                    " gwei " ||
+                    "empty data");
+                  $('#depositAddress').html("fromAddress " + dataRecords[i].from ||
+                      "empty data");
+                  $('#toAddress').html("toAddress " + dataRecords[i].to ||
+                    "empty data");
+                  $('#depositValue').html("deposit value " + dataRecords[i].value ||
+                    "empty data");
+                  $("#timer").html("耗时 " + (timeEnd - timeStart) / 1000 + " s");
+                }
+            },
+            error: function (err) {
+                console.log("ERRO: ", err);
+                $("#error").html("ERRO: 请求失败 <br>");
+                // 隐藏加载遮罩
+                $('#loader').hide();
+                // 恢复按钮功能样式
+                $("#createDepositAddr,#getDepositAddr,#withdraw").attr("disabled", false);
+            }　　　　
+        });　　
+    };
     
     // “获取链上信息”按钮的点击事件
     let withdraw = function () {
@@ -185,8 +250,8 @@ $(function () {　　
                 // 恢复按钮功能样式
                 $("#createDepositAddr,#getDepositAddr,#withdraw").attr("disabled", false);
             }　
-        })
-    }
+        });
+    };
 
 
     // 绑定“提交”按钮的点击事件
@@ -197,6 +262,8 @@ $(function () {　　
 
     // 绑定“提交”按钮的点击事件
     $("#withdraw").on("click", withdraw);
+
+    $("queryDepositTxs").on("click", queryDepositRecords);
 
     // 检查输入值是否符合 64hash + 512signature
     function checkInput(hash) {
