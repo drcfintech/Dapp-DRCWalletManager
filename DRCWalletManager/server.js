@@ -353,7 +353,7 @@ var Actions = {
       }
     }
     
-    console.log(addresses[1]);
+    // console.log(addresses[1]);
     console.log(addresses.length);
 
     const totalConfirmNumber = 24;
@@ -364,6 +364,7 @@ var Actions = {
       return currentBlock;
     })
     .then((currentBlock) => {
+      let blockHigh = currentBlock;
       DRCTokenContract.getPastEvents('Transfer', {
         filter: {to: addresses}, // Using an array means OR: e.g. 20 or 23
         fromBlock: currentBlock - totalConfirmNumber,
@@ -383,11 +384,12 @@ var Actions = {
         returnObject.records = new Array(events.length);        
 
         for (var i = 0; i < events.length; i++) {
-          var returnOneObject = {from: events[i].returnValues.from};          
+          var returnOneObject = returnObject.records[i];
+          returnOneObject = {from: events[i].returnValues.from};          
           returnOneObject.to = events[i].returnValues.to;
           returnOneObject.value = events[i].returnValues.value;
           returnOneObject.blockNumber = events[i].blockNumber;
-          returnOneObject.blockConfirmNum = totalConfirmNumber - (currentBlock - events[i].blockNubmber);
+          returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
           returnOneObject.txHash = events[i].transactionHash;
 
           // web3.eth.getTransaction(events[i].transactionHash)
@@ -435,7 +437,8 @@ var Actions = {
             returnOneObject.gasUsed = values[1];
           })
           .then(() => {
-            returnObject.records[i] = returnOneObject;
+            console.log(returnOneObject);
+            // returnObject.records[i] = returnOneObject;
           })
           .catch(e => {
             if (e) {
