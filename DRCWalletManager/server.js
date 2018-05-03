@@ -37,6 +37,16 @@ let DRCWalletMgrContract;
 // 调用合约的账号
 let account;
 
+// Token智能合约
+const DRCToken_artifacts = require('./build/contracts/DRCToken.json');
+// Token合约发布地址
+const DRCToken_contractAT = DRCToken_artifacts.networks['4'].address;
+
+// Token合约abi
+const DRCToken_contractABI = DRCToken_artifacts.abi;
+// 初始化Token合约实例
+let DRCTokenContract;
+
 
 // Add headers
 app.use((req, res, next) => {
@@ -86,7 +96,9 @@ var Actions = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
   start: function () {
     DRCWalletMgrContract = new web3.eth.Contract(contractABI, contractAT, {});
+    DRCTokenContract = new web3.eth.Contract(DRCToken_contractABI, DRCToken_contractAT, {});
     DRCWalletMgrContract.setProvider(web3.currentProvider);
+    DRCTokenContract.setProvider(web3.currentProvider);
   },
 
   // 往链上存数据
@@ -290,6 +302,168 @@ var Actions = {
       returnObject = {};
       // 保存log
       // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+    });
+  },
+
+  getDepositInfo: function (data) {
+    let dataObject = data;
+
+    if (!web3.utils.isAddress(dataObject.data)) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.addressError));
+      // 保存log
+      log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      return;
+    }
+
+    DRCWalletMgrContract.methods.getDepositInfo(dataObject.data).call((err, result) => {
+      if (err) {
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.getDepositInfoFailed));
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+        return;
+      }
+
+      let returnObject = responceData.getDepositInfoSuccess;
+      returnObject.balance = result["0"];
+      returnObject.frozenAmount = result["1"];
+      // 返回success 附带message
+      dataObject.res.end(JSON.stringify(returnObject));
+      // 重置
+      returnObject = {};
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+    });
+  },
+
+  getDepositTxs: function (data) {
+    let dataObject = data;
+    let addresses = dataObject.data.split(",");
+    console.log(addresses);
+    console.log(addresses[0]);
+
+    for (var i = 0; i < addresses.length; i++) {
+      if (!web3.utils.isAddress(addresses[i])) {
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.addressError));
+        // 保存log
+        log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+        return;
+      }
+    }
+    
+    console.log(addresses[1]);
+    console.log(addresses.length);
+
+    const totalConfirmNumber = 24;
+    web3.eth.getBlockNumber()
+    .then((result) => {
+      let currentBlock = result;
+      console.log(currentBlock);
+      return currentBlock;
+    })
+    .then((currentBlock) => {
+      DRCTokenContract.getPastEvents('Transfer', {
+        filter: {to: addresses}, // Using an array means OR: e.g. 20 or 23
+        fromBlock: currentBlock - totalConfirmNumber,
+        toBlock: "latest"
+      }, (err, events) => {
+        if (err) {
+          // 返回failed 附带message
+          dataObject.res.end(JSON.stringify(responceData.evmError));
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+          return;
+        }
+        console.log(events);
+      })
+      .then((events) => {
+        let returnObject = responceData.getDepositTxSuccess;
+        returnObject.records = new Array(events.length);        
+
+        for (var i = 0; i < events.length; i++) {
+          var returnOneObject = {from: events[i].returnValues.from};          
+          returnOneObject.to = events[i].returnValues.to;
+          returnOneObject.value = events[i].returnValues.value;
+          returnOneObject.blockNumber = events[i].blockNumber;
+          returnOneObject.blockConfirmNum = totalConfirmNumber - (currentBlock - events[i].blockNubmber);
+          returnOneObject.txHash = events[i].transactionHash;
+
+          // web3.eth.getTransaction(events[i].transactionHash)
+          // .then((result) => {
+          //   returnOneObject.gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+          //   console.log('gasPrice  ', returnOneObject.gasPrice + 'gwei');
+          //   return result.hash;
+          // })
+          // .then((txHash) => {
+          //   web3.eth.getTransactionReceipt(txHash)
+          //   .then((result) => {
+          //     returnOneObject.gasUsed = result.gasUsed;
+          //     console.log('gasUsed  ', returnOneObject.gasUsed);
+          //   });
+          // });
+
+          var gasPrice;
+          const getGasPrice = () => {
+            return new Promise((resolve, reject) => {
+              web3.eth.getTransaction(events[i].transactionHash, (error, result) => {
+                if (error) reject(error);
+
+                gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+                console.log('gasPrice  ', result.gasPrice + 'gwei');
+                resolve(result.gasPrice);
+              })
+            })
+          }
+
+          const getGasUsed = () => {
+            return new Promise((resolve, reject) => {
+              web3.eth.getTransactionReceipt(events[i].transactionHash, (error, result) => {
+                if (error) reject(error);
+
+                // returnOneObject.gasUsed = result.gasUsed;
+                console.log('gasUsed  ', result.gasUsed);
+                resolve(result.gasUsed);
+              })
+            })
+          }
+
+          Promise.all([getGasPrice(), getGasUsed()])
+          .then(values => {
+            returnOneObject.gasPrice = values[0];
+            returnOneObject.gasUsed = values[1];
+          })
+          .then(() => {
+            returnObject.records[i] = returnOneObject;
+          })
+          .catch(e => {
+            if (e) {
+              console.log('evm error', e);
+              dataObject.res.end(JSON.stringify(responceData.evmError));
+              // 重置
+              returnObject = {};
+              // 保存log
+              log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+              return;
+            }
+          })         
+
+          // web3.eth.getTransaction(events[i].transactionHash, (result) => {
+          //   returnObject.records[i].gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+          // });
+          // web3.eth.getTransactionReceipt(events[i].transactionHash, (result) => {
+          //   returnObject.records[i].gasUsed = result.gasUsed;
+          // });          
+        }
+
+        // 返回success 附带message
+        dataObject.res.end(JSON.stringify(returnObject));
+        // 重置
+        returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+      });
     });
   },
 
@@ -515,6 +689,15 @@ app.post("/getDepositAddr", function (req, res) {　　
     res: res
   });
 });　　
+
+app.post("/getDepositTxs", function (req, res) {　　
+  console.log('/getDepositTxs', qs.hash);
+  // 查询方法
+  result = Actions.getDepositTxs({
+    data: qs.hash,
+    res: res
+  });
+});　　　
 
 app.post("/withdraw", function (req, res) {　　
   console.log('/withdraw from', qs.depositAddress);
