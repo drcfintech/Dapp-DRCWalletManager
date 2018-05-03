@@ -427,11 +427,11 @@ var Actions = {
 
             Promise.all([getGasPrice(), getGasUsed()])
             .then(values => {
-              returnOneObject.gasPrice = values[0];
-              returnOneObject.gasUsed = values[1];
+              record.gasPrice = values[0];
+              record.gasUsed = values[1];
             })
             .then(() => {
-              console.log(returnOneObject);
+              console.log(record);
               // returnObject.records[i] = returnOneObject;
             })
             .catch(e => {
