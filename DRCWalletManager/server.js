@@ -381,16 +381,17 @@ var Actions = {
       })
       .then((events) => {
         let returnObject = responceData.getDepositTxSuccess;
-        returnObject.records = new Array(events.length);   
-        console.log(totalConfirmNumber);
-        console.log(blockHigh);     
+        returnObject.records = new Array(events.length); 
 
         for (var i = 0; i < events.length; i++) {
           var returnOneObject = returnObject.records[i];
           returnOneObject = {from: events[i].returnValues.from};          
           returnOneObject.to = events[i].returnValues.to;
           returnOneObject.value = events[i].returnValues.value;
-          returnOneObject.blockNumber = events[i].blockNumber;
+          returnOneObject.blockNumber = events[i].blockNumber;  
+          console.log(totalConfirmNumber);
+          console.log(blockHigh);     
+          console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
           returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
           returnOneObject.txHash = events[i].transactionHash;
 
@@ -460,8 +461,11 @@ var Actions = {
           // web3.eth.getTransactionReceipt(events[i].transactionHash, (result) => {
           //   returnObject.records[i].gasUsed = result.gasUsed;
           // });          
-        }
-
+        }   
+        
+        return returnObject;
+      })
+      .then((returnObject) => {
         // 返回success 附带message
         console.log(returnObject);
         dataObject.res.end(JSON.stringify(returnObject));
