@@ -478,18 +478,25 @@ var Actions = {
       // });
 
         for (var i = 0; i < events.length; i++) {
-          var returnOneObject = returnObject.records[i];
-          returnOneObject = {from: events[i].returnValues.from};          
-          returnOneObject.to = events[i].returnValues.to;
-          returnOneObject.value = events[i].returnValues.value;
-          returnOneObject.blockNumber = events[i].blockNumber;  
+          // var returnOneObject = returnObject.records[i];
+          // returnOneObject = {from: events[i].returnValues.from};          
+          // returnOneObject.to = events[i].returnValues.to;
+          // returnOneObject.value = events[i].returnValues.value;
+          // returnOneObject.blockNumber = events[i].blockNumber;  
+          returnObject.records[i].from = {from: events[i].returnValues.from};
+          returnObject.records[i].to = events[i].returnValues.to;
+          returnObject.records[i].value = events[i].returnValues.value;
+          returnObject.records[i].blockNumber = events[i].blockNumber;
           console.log(totalConfirmNumber);
           console.log(blockHigh);   
           console.log(events[i].blockNubmber);
+          console.log(returnObject.records[i].blockNumber);
           console.log(blockHigh - events[i].blockNubmber);
           console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
-          returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
-          returnOneObject.txHash = events[i].transactionHash;
+          // returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
+          // returnOneObject.txHash = events[i].transactionHash;
+          returnObject.records[i].blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
+          returnObject.records[i].txHash = events[i].transactionHash;
         }
         console.log(returnObject);
 
