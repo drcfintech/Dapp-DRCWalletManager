@@ -381,7 +381,9 @@ var Actions = {
       })
       .then((events) => {
         let returnObject = responceData.getDepositTxSuccess;
-        returnObject.records = new Array(events.length);        
+        returnObject.records = new Array(events.length);   
+        console.log(totalConfirmNumber);
+        console.log(blockHigh);     
 
         for (var i = 0; i < events.length; i++) {
           var returnOneObject = returnObject.records[i];
@@ -461,6 +463,7 @@ var Actions = {
         }
 
         // 返回success 附带message
+        console.log(returnObject);
         dataObject.res.end(JSON.stringify(returnObject));
         // 重置
         returnObject = {};
