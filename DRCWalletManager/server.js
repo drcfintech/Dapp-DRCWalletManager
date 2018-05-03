@@ -383,97 +383,178 @@ var Actions = {
         let returnObject = responceData.getDepositTxSuccess;
         returnObject.records = new Array(events.length); 
 
-        for (var i = 0; i < events.length; i++) {
-          var returnOneObject = returnObject.records[i];
-          returnOneObject = {from: events[i].returnValues.from};          
-          returnOneObject.to = events[i].returnValues.to;
-          returnOneObject.value = events[i].returnValues.value;
-          returnOneObject.blockNumber = events[i].blockNumber;  
-          console.log(totalConfirmNumber);
-          console.log(blockHigh);     
-          console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
-          returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
-          returnOneObject.txHash = events[i].transactionHash;
+        var promises = returnObject.records.map((record) => {
+          return new Promise((resolve, reject) => { 
+            console.log(totalConfirmNumber);
+            console.log(blockHigh);   
+            console.log(events[i].blockNubmber);
+            console.log(blockHigh - events[i].blockNubmber);
+            console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
+            blockConfirm = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
+            record = {
+              from: events[i].returnValues.from,
+              to: events[i].returnValues.to,
+              value: events[i].returnValues.value,
+              blockNumber: events[i].blockNumber,
+              blockConfirmNum: blockConfirm,
+              txHash: events[i].transactionHash
+            };
 
-          // web3.eth.getTransaction(events[i].transactionHash)
-          // .then((result) => {
-          //   returnOneObject.gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-          //   console.log('gasPrice  ', returnOneObject.gasPrice + 'gwei');
-          //   return result.hash;
-          // })
-          // .then((txHash) => {
-          //   web3.eth.getTransactionReceipt(txHash)
-          //   .then((result) => {
-          //     returnOneObject.gasUsed = result.gasUsed;
-          //     console.log('gasUsed  ', returnOneObject.gasUsed);
-          //   });
-          // });
+            var gasPrice;
+            const getGasPrice = () => {
+              return new Promise((resolve, reject) => {
+                web3.eth.getTransaction(events[i].transactionHash, (error, result) => {
+                  if (error) reject(error);
 
-          var gasPrice;
-          const getGasPrice = () => {
-            return new Promise((resolve, reject) => {
-              web3.eth.getTransaction(events[i].transactionHash, (error, result) => {
-                if (error) reject(error);
-
-                gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-                console.log('gasPrice  ', result.gasPrice + 'gwei');
-                resolve(result.gasPrice);
-              })
-            })
-          }
-
-          const getGasUsed = () => {
-            return new Promise((resolve, reject) => {
-              web3.eth.getTransactionReceipt(events[i].transactionHash, (error, result) => {
-                if (error) reject(error);
-
-                // returnOneObject.gasUsed = result.gasUsed;
-                console.log('gasUsed  ', result.gasUsed);
-                resolve(result.gasUsed);
-              })
-            })
-          }
-
-          Promise.all([getGasPrice(), getGasUsed()])
-          .then(values => {
-            returnOneObject.gasPrice = values[0];
-            returnOneObject.gasUsed = values[1];
-          })
-          .then(() => {
-            console.log(returnOneObject);
-            // returnObject.records[i] = returnOneObject;
-          })
-          .catch(e => {
-            if (e) {
-              console.log('evm error', e);
-              dataObject.res.end(JSON.stringify(responceData.evmError));
-              // 重置
-              returnObject = {};
-              // 保存log
-              log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-              return;
+                  gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+                  console.log('gasPrice  ', result.gasPrice + 'gwei');
+                  resolve(result.gasPrice);
+                });
+              });
             }
-          })         
 
-          // web3.eth.getTransaction(events[i].transactionHash, (result) => {
-          //   returnObject.records[i].gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-          // });
-          // web3.eth.getTransactionReceipt(events[i].transactionHash, (result) => {
-          //   returnObject.records[i].gasUsed = result.gasUsed;
-          // });          
-        }   
-        
-        return returnObject;
-      })
-      .then((returnObject) => {
-        // 返回success 附带message
-        console.log(returnObject);
-        dataObject.res.end(JSON.stringify(returnObject));
-        // 重置
-        returnObject = {};
-        // 保存log
-        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+            const getGasUsed = () => {
+              return new Promise((resolve, reject) => {
+                web3.eth.getTransactionReceipt(events[i].transactionHash, (error, result) => {
+                  if (error) reject(error);
+
+                  // returnOneObject.gasUsed = result.gasUsed;
+                  console.log('gasUsed  ', result.gasUsed);
+                  resolve(result.gasUsed);
+                });
+              });
+            }
+
+            Promise.all([getGasPrice(), getGasUsed()])
+            .then(values => {
+              returnOneObject.gasPrice = values[0];
+              returnOneObject.gasUsed = values[1];
+            })
+            .then(() => {
+              console.log(returnOneObject);
+              // returnObject.records[i] = returnOneObject;
+            })
+            .catch(e => {
+              if (e) {
+                console.log('evm error', e);
+                dataObject.res.end(JSON.stringify(responceData.evmError));
+                // 重置
+                returnObject = {};
+                // 保存log
+                log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+                return;
+              }
+            });
+
+            resolve();
+          });
+        });
+
+        Promise.all(promises)
+        .then(() => {
+          // 返回success 附带message
+          console.log(returnObject);
+          dataObject.res.end(JSON.stringify(returnObject));
+          // 重置
+          returnObject = {};
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+        });
       });
+
+      //   for (var i = 0; i < events.length; i++) {
+      //     var returnOneObject = returnObject.records[i];
+      //     returnOneObject = {from: events[i].returnValues.from};          
+      //     returnOneObject.to = events[i].returnValues.to;
+      //     returnOneObject.value = events[i].returnValues.value;
+      //     returnOneObject.blockNumber = events[i].blockNumber;  
+      //     console.log(totalConfirmNumber);
+      //     console.log(blockHigh);   
+      //     console.log(events[i].blockNubmber);
+      //     console.log(blockHigh - events[i].blockNubmber);
+      //     console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
+      //     returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
+      //     returnOneObject.txHash = events[i].transactionHash;
+
+      //     // web3.eth.getTransaction(events[i].transactionHash)
+      //     // .then((result) => {
+      //     //   returnOneObject.gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+      //     //   console.log('gasPrice  ', returnOneObject.gasPrice + 'gwei');
+      //     //   return result.hash;
+      //     // })
+      //     // .then((txHash) => {
+      //     //   web3.eth.getTransactionReceipt(txHash)
+      //     //   .then((result) => {
+      //     //     returnOneObject.gasUsed = result.gasUsed;
+      //     //     console.log('gasUsed  ', returnOneObject.gasUsed);
+      //     //   });
+      //     // });
+
+      //     var gasPrice;
+      //     const getGasPrice = () => {
+      //       return new Promise((resolve, reject) => {
+      //         web3.eth.getTransaction(events[i].transactionHash, (error, result) => {
+      //           if (error) reject(error);
+
+      //           gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+      //           console.log('gasPrice  ', result.gasPrice + 'gwei');
+      //           resolve(result.gasPrice);
+      //         })
+      //       })
+      //     }
+
+      //     const getGasUsed = () => {
+      //       return new Promise((resolve, reject) => {
+      //         web3.eth.getTransactionReceipt(events[i].transactionHash, (error, result) => {
+      //           if (error) reject(error);
+
+      //           // returnOneObject.gasUsed = result.gasUsed;
+      //           console.log('gasUsed  ', result.gasUsed);
+      //           resolve(result.gasUsed);
+      //         })
+      //       })
+      //     }
+
+      //     Promise.all([getGasPrice(), getGasUsed()])
+      //     .then(values => {
+      //       returnOneObject.gasPrice = values[0];
+      //       returnOneObject.gasUsed = values[1];
+      //     })
+      //     .then(() => {
+      //       console.log(returnOneObject);
+      //       // returnObject.records[i] = returnOneObject;
+      //     })
+      //     .catch(e => {
+      //       if (e) {
+      //         console.log('evm error', e);
+      //         dataObject.res.end(JSON.stringify(responceData.evmError));
+      //         // 重置
+      //         returnObject = {};
+      //         // 保存log
+      //         log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+      //         return;
+      //       }
+      //     })         
+
+      //     // web3.eth.getTransaction(events[i].transactionHash, (result) => {
+      //     //   returnObject.records[i].gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
+      //     // });
+      //     // web3.eth.getTransactionReceipt(events[i].transactionHash, (result) => {
+      //     //   returnObject.records[i].gasUsed = result.gasUsed;
+      //     // });          
+      //   }   
+        
+      //   return returnObject;
+      // })
+      // .then((returnObject) => {
+      //   // 返回success 附带message
+      //   console.log(returnObject);
+      //   dataObject.res.end(JSON.stringify(returnObject));
+      //   // 重置
+      //   returnObject = {};
+      //   // 保存log
+      //   // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+      // });
     });
   },
 
