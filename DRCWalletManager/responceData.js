@@ -35,10 +35,6 @@ module.exports = {
         status: "failed",
         msg: "提现失败"
     },
-    selectHashFailed: {
-        status: "failed",
-        msg: "获取充值地址失败"
-    },
     createDepositAddrSuccess: {
         status: "success",
         msg: "创建充值地址成功"
