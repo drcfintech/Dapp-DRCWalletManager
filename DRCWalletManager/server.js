@@ -492,10 +492,10 @@ var Actions = {
           console.log(events[i].blockNubmber);
           console.log(returnObject.records[i].blockNumber);
           console.log(blockHigh - events[i].blockNubmber);
-          console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
+          console.log(totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber));
           // returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
           // returnOneObject.txHash = events[i].transactionHash;
-          returnObject.records[i].blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
+          returnObject.records[i].blockConfirmNum = totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber);
           returnObject.records[i].txHash = events[i].transactionHash;
         }
         console.log(returnObject);
