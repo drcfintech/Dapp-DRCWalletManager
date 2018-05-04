@@ -169,7 +169,7 @@ $(function () {　　
                     "empty data");
                   $('#blockNumber').html("block number " + parseInt(dataRecords[i].blockNumber) ||
                     "empty data");
-                  $('#blockConfirm').html("block confirmed number " + parseInt(dataRecords[i].blockConfrimNum) ||
+                  $('#blockConfirm').html("block confirmed number " + parseInt(dataRecords[i].blockConfirmNum) ||
                     "empty data");
                   $('#depositAddress').html("fromAddress " + dataRecords[i].from ||
                       "empty data");
