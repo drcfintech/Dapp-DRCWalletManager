@@ -505,6 +505,11 @@ var Actions = {
           returnObject.records[i].txHash = events[i].transactionHash;
         }
         console.log(returnObject);
+        dataObject.res.end(JSON.stringify(returnObject));
+        // 重置
+        returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
 
           // web3.eth.getTransaction(events[i].transactionHash)
           // .then((result) => {
@@ -520,61 +525,7 @@ var Actions = {
           //   });
           // });
 
-        const getGasPrice = (txHash) => {
-          return new Promise((resolve, reject) => {
-            web3.eth.getTransaction(txHash, (error, result) => {
-              if (error) reject(error);
-
-              console.log('gasPrice  ', result.gasPrice + 'gwei');
-              resolve(result.gasPrice);
-            });
-          });
-        }    
-
-        const getGasUsed = (txHash) => {
-          return new Promise((resolve, reject) => {
-            web3.eth.getTransactionReceipt(txHash, (error, result) => {
-              if (error) reject(error);
-
-              // returnOneObject.gasUsed = result.gasUsed;
-              console.log('gasUsed  ', result.gasUsed);
-              resolve(result.gasUsed);
-            });
-          });
-        }
-
-        const getGasPriceUsed = async (returnOneObject) => {
-          returnOneObject.gasPrice = await getGasPrice(returnOneObject.txHash);
-          returnOneObject.gasUsed = await getGasUsed(returnOneObject.txHash);
-          console.log(returnOneObject.gasPrice);
-          console.log(returnOneObject.gasUsed);
-        }
-
-        var promises = returnObject.records.map((record) => {
-          return getGasPriceUsed(record);
-        });
-
-        Promise.all(promises)
-        .then(values => {
-          // 返回success 附带message
-          console.log(returnObject);
-          dataObject.res.end(JSON.stringify(returnObject));
-          // 重置
-          returnObject = {};
-          // 保存log
-          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
-        })
-        .catch(e => {
-          if (e) {
-            console.log('evm error', e);
-            dataObject.res.end(JSON.stringify(responceData.evmError));
-            // 重置
-            returnObject = {};
-            // 保存log
-            log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-            return;
-          }
-        });
+        
 
         // for (var i = 0; i < events.length; i++) {
         //   var returnOneObject = returnObject.records[i];
@@ -618,6 +569,85 @@ var Actions = {
       //   // 保存log
       //   // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
       });
+    });
+  },
+
+  getDepositTxsDetail: function (data) {
+    let dataObject = data;
+    let queryData = dataObject.data.split(",");
+    console.log(queryData);
+    console.log(queryData[0]);
+
+    let returnObject = responceData.getDepositTxDetailSuccess;
+    returnObject.records = new Array(queryData.length);
+
+    const getGasPrice = (txHash) => {
+      return new Promise((resolve, reject) => {
+        web3.eth.getTransaction(txHash, (error, result) => {
+          if (error) reject(error);
+
+          console.log('gasPrice  ', result.gasPrice + 'gwei');
+          resolve(result.gasPrice);
+        });
+      });
+    }    
+
+    const getGasUsed = (txHash) => {
+      return new Promise((resolve, reject) => {
+        web3.eth.getTransactionReceipt(txHash, (error, result) => {
+          if (error) reject(error);
+
+          // returnOneObject.gasUsed = result.gasUsed;
+          console.log('gasUsed  ', result.gasUsed);
+          resolve(result.gasUsed);
+        });
+      });
+    }
+
+    const getTxTimestamp = (block) => {
+      return new Promise((reject, error) => {
+        web3.eth.getBlock(block, (err, res) => {
+          if (err) reject(err);
+
+          console.log('timestamp  ', res.timestamp);
+          resolve(res.timestamp);
+        });
+      });
+    }
+
+    const getGasPriceUsed = async (returnOneObject, queryObj) => {
+      returnOneObject.gasPrice = await getGasPrice(queryObj.txHash);
+      returnOneObject.gasUsed = await getGasUsed(queryObj.txHash);
+      returnOneObject.timestamp = await getTxTimestamp(queryObj.blockNumber);
+      console.log(returnOneObject.gasPrice);
+      console.log(returnOneObject.gasUsed);
+      console.log(returnOneObject.timestamp);
+    }
+
+    var promises = returnObject.records.map((record, ind) => {      
+      return getGasPriceUsed(record, queryData[ind]);
+    });
+
+    Promise.all(promises)
+    .then(values => {
+      // 返回success 附带message
+      console.log(returnObject);
+      dataObject.res.end(JSON.stringify(returnObject));
+      // 重置
+      returnObject = {};
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+    })
+    .catch(e => {
+      if (e) {
+        console.log('evm error', e);
+        dataObject.res.end(JSON.stringify(responceData.evmError));
+        // 重置
+        returnObject = {};
+        // 保存log
+        log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }
     });
   },
 

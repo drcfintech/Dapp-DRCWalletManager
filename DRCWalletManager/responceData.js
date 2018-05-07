@@ -31,9 +31,13 @@ module.exports = {
         status: "success",
         msg: "获取充值记录成功"
     },
+    getDepositTxDetailSuccess: {
+        status: "success",
+        msg: "获取充值记录详细信息成功"
+    },
     getDepositAddrFailed: {
         status: "failed",
-        msg: "获取充值地址失败"
+        msg: "获取充值地失败"
     },
     getDepositInfoFailed: {
         status: "failed",
