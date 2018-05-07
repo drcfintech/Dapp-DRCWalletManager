@@ -184,8 +184,8 @@ var Actions = {
             web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
               if (error) reject(error);
               resolve(web3.utils.toHex(result));
-            })
-          })
+            });
+          });
         }
         // 获取data部分的gasPrice
         const getGasPrice = () => {
@@ -200,9 +200,10 @@ var Actions = {
               } else {
                 resolve(web3.utils.toHex(result * 1.5));
               }
-            })
-          })
+            });
+          });
         }
+
         // 给tx签名，并且发送上链
         const sendTransaction = (rawTx) => {
           return new Promise((resolve, reject) => {
@@ -213,13 +214,13 @@ var Actions = {
             let serializedTx = tx.serialize();
             // 签好的tx发送到链上
             web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-              .on('receipt', (receipt) => {
-                console.log(receipt);
-                resolve(receipt);
-              })
-              .on('confirmation', (confirmationNumber, receipt) => {
-              });
-          })
+            .on('receipt', (receipt) => {
+              console.log(receipt);
+              resolve(receipt);
+            })
+            .on('confirmation', (confirmationNumber, receipt) => {
+            });
+          });
         }
 
         // 上链结果响应到请求方
@@ -240,7 +241,6 @@ var Actions = {
           // 保存log
           log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
-
 
         getBalance(() => {
           Promise.all([getNonce(), getGasPrice()])
@@ -345,6 +345,14 @@ var Actions = {
 
   getDepositTxs: function (data) {
     let dataObject = data;
+    if (dataObject.data.length == 0) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.dataError));
+      // 保存log
+      log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.dataError);
+      return;
+    }
+
     let addresses = dataObject.data.split(",");
     console.log(addresses);
     console.log(addresses[0]);
@@ -574,6 +582,14 @@ var Actions = {
 
   getDepositTxsDetail: function (data) {
     let dataObject = data;
+    if (dataObject.data.length == 0) {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.dataError));
+      // 保存log
+      log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.dataError);
+      return;
+    }
+
     let queryData = dataObject.data.split(",");
     console.log(queryData);
     console.log(queryData[0]);
@@ -679,7 +695,7 @@ var Actions = {
       if (result['0'] < requestObject.value || (result['0'] - result['1']) < requestObject.value) {
         dataObject.res.end(JSON.stringify(responceData.notEnoughBalance));
         // 保存log
-        log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.notEnoughBalance);
+        log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, 0, 0, responceData.notEnoughBalance);
 
         return;
       }
@@ -691,8 +707,8 @@ var Actions = {
 
         // 拿到rawTx里面的data部分
         console.log(requestObject);
-        let depositTime = new Date().getUTCMilliseconds() + 1000 * 1000; // add 1 more minute
-        let encodeData_params = web3.eth.abi.encodeParameters(['address', 'uint256', 'uint256'], [requestObject.depositAddress, depositTime, requestObject.value]);
+        let depositTime = new Date().getUTCMilliseconds() + 60 * 1000; // add 1 more minute
+        let encodeData_params = web3.eth.abi.encodeParameters(['address', 'uint256', 'uint256'], [requestObject.withdrawAddress, depositTime, requestObject.value]);
         let encodeData_function = web3.eth.abi.encodeFunctionSignature('withdraw(address, uint256, uint256)');
         console.log(encodeData_function);
         let encodeData = encodeData_function + encodeData_params.slice(2);
@@ -726,9 +742,10 @@ var Actions = {
             web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
               if (error) reject(error);
               resolve(web3.utils.toHex(result));
-            })
-          })
+            });
+          });
         }
+
         // 获取data部分的gasPrice
         const getGasPrice = () => {
           return new Promise((resolve, reject) => {
@@ -737,11 +754,13 @@ var Actions = {
               //resolve(web3.utils.toHex(result));
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
-              // if (gasPrice < 2.5) result = 4000000000;
-              resolve(web3.utils.toHex(result * 1.25));
-            })
-          })
+              if (gasPrice > 4) result = gasPrice;
+              else result *= 1.25;
+              resolve(web3.utils.toHex(result));
+            });
+          });
         }
+
         // 给tx签名，并且发送上链
         const sendTransaction = (rawTx) => {
           return new Promise((resolve, reject) => {
@@ -752,13 +771,17 @@ var Actions = {
             let serializedTx = tx.serialize();
             // 签好的tx发送到链上
             web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-              .on('receipt', (receipt) => {
-                console.log(receipt);
-                resolve(receipt);
-              })
-              .on('confirmation', (confirmationNumber, receipt) => {
-              });
-          })
+            .on('transactionHash', (hash) => {
+              console.log(hash);
+              // resolve(hash);
+            })
+            .on('receipt', (receipt) => {
+              console.log(receipt);
+              resolve(receipt);
+            })
+            .on('confirmation', (confirmationNumber, receipt) => {
+            });
+          });
         }
 
         // 上链结果响应到请求方
@@ -772,12 +795,13 @@ var Actions = {
           }
 
           returnObject = responceData.withdrawSuccess;
+          // returnObject.txHash = result;
           returnObject.txHash = result.transactionHash;
           returnObject.gasUsed = result.gasUsed;
           returnObject.gasPrice = gasPrice;
 
           logObject = result.logs[0];
-          console.log(logObject);
+          console.log(logObject)
           
           // returnObject.depositAddr = web3.utils.numberToHex(web3.utils.hexToNumberString(logObject.data));
           // 返回success 附带message
@@ -788,36 +812,35 @@ var Actions = {
           log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
 
-
         getBalance(() => {
           Promise.all([getNonce(), getGasPrice()])
-            .then(values => {
-              let rawTx = {
-                nonce: values[0],
-                to: contractAT,
-                gasPrice: values[1],
-                gasLimit: web3.utils.toHex(5900000),
-                data: encodeData
-              };
-              return rawTx;
-            })
-            .then((rwaTx) => {
-              return sendTransaction(rwaTx);
-            })
-            .then((result) => {
-              returnResult(result);
-            })
-            .catch(e => {
-              if (e) {
-                console.log('evm error', e);
-                dataObject.res.end(JSON.stringify(responceData.evmError));
-                // 重置
-                returnObject = {};
-                // 保存log
-                log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
-                return;
-              }
-            })
+          .then(values => {
+            let rawTx = {
+              nonce: values[0],
+              to: contractAT,
+              gasPrice: values[1],
+              gasLimit: web3.utils.toHex(5900000),
+              data: encodeData
+            };
+            return rawTx;
+          })
+          .then((rwaTx) => {
+            return sendTransaction(rwaTx);
+          })
+          .then((result) => {
+            returnResult(result);
+          })
+          .catch(e => {
+            if (e) {
+              console.log('evm error', e);
+              dataObject.res.end(JSON.stringify(responceData.evmError));
+              // 重置
+              returnObject = {};
+              // 保存log
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
+              return;
+            }
+          });
         });
       }
     });

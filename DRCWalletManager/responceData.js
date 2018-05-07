@@ -19,6 +19,10 @@ module.exports = {
         status: "failed",
         msg: "地址不合法"
     },
+    dataError: {
+        status: "failed",
+        msg: "非法请求"
+    },
     getDepositAddrSuccess: {
         status: "success",
         msg: "获取充值地址成功"
