@@ -584,7 +584,7 @@ var Actions = {
     let dataObject = data;
 
     // let queryData = dataObject.data.split(",");
-    let queryData = JSON.parse(dataObject.data);
+    let queryData = JSON.parse(JSON.stringify(dataObject.data));
     console.log(queryData);
     console.log(queryData.length);
     console.log(queryData[0]);
