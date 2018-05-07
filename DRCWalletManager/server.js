@@ -581,7 +581,7 @@ var Actions = {
   },
 
   getDepositTxsDetail: function (data) {
-    let dataObject = data;
+    let dataObject = Array.from(data);
     if (dataObject.data.length == 0) {
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.dataError));
@@ -590,7 +590,8 @@ var Actions = {
       return;
     }
 
-    let queryData = dataObject.data.split(",");
+    // let queryData = dataObject.data.split(",");
+    let queryData = dataObject.data;
     console.log(queryData);
     console.log(queryData[0]);
 
