@@ -506,10 +506,10 @@ var Actions = {
           console.log(events[i].blockNubmber);
           console.log(returnObject.records[i].blockNumber);
           console.log(blockHigh - events[i].blockNubmber);
-          console.log(totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber));
+          console.log(blockHigh - returnObject.records[i].blockNumber);
           // returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
           // returnOneObject.txHash = events[i].transactionHash;
-          returnObject.records[i].blockConfirmNum = totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber);
+          returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber;
           returnObject.records[i].txHash = events[i].transactionHash;
         }
         console.log(returnObject);
@@ -617,7 +617,11 @@ var Actions = {
         console.log(returnObject.records[i].blockNumber);
         console.log(blockHigh - queryData[i].blockNubmber);
         console.log(totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber));
-        returnObject.records[i].blockConfirmNum = totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber);      
+        if ((blockHigh - returnObject.records[i].blockNumber) > totalConfirmNumber) {
+          returnObject.records[i].blockConfirmNum = totalConfirmNumber;
+        } else {
+          returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber; 
+        }     
       }
       console.log(returnObject);
 
