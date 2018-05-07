@@ -131,11 +131,11 @@ var Actions = {
       console.log(resultValue);
       if (resultValue != "0") {
         let returnObject = {};
-        returnObject = responceData.depositAlreadyExist;
+        returnObject = responceData.createDepositAddrSuccess;
         returnObject.txHash = 0;
         returnObject.gasPrice = 0;
         returnObject.gasUsed = 0;
-        returnObject.depositAddr = resultValue;
+        returnObject.depositAddr = result;
         dataObject.res.end(JSON.stringify(returnObject));
         // 保存log
         log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.depositAlreadyExist);
