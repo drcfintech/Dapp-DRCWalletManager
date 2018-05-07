@@ -883,6 +883,15 @@ app.post("/getDepositTxs", function (req, res) {　　
   });
 });　　　
 
+app.post("/getDepositTxsDetail", function (req, res) {　　
+  console.log('/getDepositTxsDetail', qs.hash);
+  // 查询方法
+  result = Actions.getDepositTxsDetail({
+    data: qs.hash,
+    res: res
+  });
+});　　　
+
 app.post("/withdraw", function (req, res) {　　
   console.log('/withdraw from', qs.depositAddress);
   console.log('/withdraw value', qs.value);
