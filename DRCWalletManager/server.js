@@ -581,8 +581,13 @@ var Actions = {
   },
 
   getDepositTxsDetail: function (data) {
-    let dataObject = Array.from(data);
-    if (dataObject.data.length == 0) {
+    let dataObject = data;
+
+    // let queryData = dataObject.data.split(",");
+    let queryData = JSON.stringify(dataObject.data);
+    console.log(queryData);
+    console.log(queryData[0]);
+    if (queryData.length == 0) {
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.dataError));
       // 保存log
@@ -590,10 +595,7 @@ var Actions = {
       return;
     }
 
-    // let queryData = dataObject.data.split(",");
-    let queryData = dataObject.data;
-    console.log(queryData);
-    console.log(queryData[0]);
+    
 
     let returnObject = responceData.getDepositTxDetailSuccess;
     returnObject.records = new Array(queryData.length);
