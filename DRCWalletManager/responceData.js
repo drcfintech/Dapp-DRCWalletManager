@@ -1,6 +1,6 @@
 module.exports = {
     depositAlreadyExist: {
-        status: "failed",
+        status: "success",
         msg: "输入的钱包地址已经有对应的充值地址"
     },
     lowBalance: {

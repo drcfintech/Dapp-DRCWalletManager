@@ -130,7 +130,13 @@ var Actions = {
       var resultValue = web3.utils.hexToNumberString(result);
       console.log(resultValue);
       if (resultValue != "0") {
-        dataObject.res.end(JSON.stringify(responceData.depositAlreadyExist));
+        let returnObject = {};
+        returnObject = responceData.depositAlreadyExist;
+        returnObject.txHash = 0;
+        returnObject.gasPrice = 0;
+        returnObject.gasUsed = 0;
+        returnObject.depositAddr = resultValue;
+        dataObject.res.end(JSON.stringify(returnObject));
         // 保存log
         log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.depositAlreadyExist);
 
