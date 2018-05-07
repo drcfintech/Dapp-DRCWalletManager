@@ -584,8 +584,9 @@ var Actions = {
     let dataObject = data;
 
     // let queryData = dataObject.data.split(",");
-    let queryData = JSON.stringify(dataObject.data);
+    let queryData = Array.from(JSON.stringify(dataObject.data));
     console.log(queryData);
+    console.log(queryData.length);
     console.log(queryData[0]);
     if (queryData.length == 0) {
       // 返回failed 附带message
