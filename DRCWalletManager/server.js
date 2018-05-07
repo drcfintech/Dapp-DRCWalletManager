@@ -643,9 +643,8 @@ var Actions = {
           });
         });
       }
-
       const getTxTimestamp = (block) => {
-        return new Promise((reject, error) => {
+        return new Promise((resolve, reject) => {
           web3.eth.getBlock(block, (err, res) => {
             if (err) reject(err);
  
