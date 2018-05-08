@@ -701,7 +701,7 @@ var Actions = {
     let dataObject = data;
     let requestObject = dataObject.data;
 
-    if (!web3.utils.isAddress(requestObject.depositAddress)) {
+    if (!web3.utils.isAddress(requestObject.withdrawAddress)) {
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.addressError));
       // 保存log
@@ -710,12 +710,12 @@ var Actions = {
     }
 
     // 上链步骤：查询没有结果之后再上链
-    DRCWalletMgrContract.methods.getDepositInfo(requestObject.depositAddress).call((error, result) => {
+    DRCWalletMgrContract.methods.getDepositInfo(requestObject.withdrawAddress).call((error, result) => {
       if (error) {
         // 以太坊虚拟机的异常
         dataObject.res.end(JSON.stringify(responceData.evmError));
         // 保存log
-        log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
+        log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, 0, 0, responceData.evmError);
         return;
       }
 
@@ -751,7 +751,7 @@ var Actions = {
             if (error) {
               dataObject.res.end(JSON.stringify(responceData.evmError));
               // 保存log
-              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, 0, 0, responceData.evmError);
               return;
             }
             console.log('balance =>', balance);
@@ -759,7 +759,7 @@ var Actions = {
               // 返回failed 附带message
               dataObject.res.end(JSON.stringify(responceData.lowBalance));
               // 保存log
-              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.lowBalance);
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, 0, 0, responceData.lowBalance);
               return;
             }
             callback();
@@ -819,7 +819,7 @@ var Actions = {
           status = web3.utils.hexToNumber(result.status);
           if (!status) {
             dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
-            log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
+            log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
             return;
           }
@@ -839,7 +839,7 @@ var Actions = {
           // 重置
           returnObject = {};
           // 保存log
-          log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
+          log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
 
         getBalance(() => {
@@ -867,7 +867,7 @@ var Actions = {
               // 重置
               returnObject = {};
               // 保存log
-              log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, gasPrice, 0, responceData.evmError);
+              log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, 0, responceData.evmError);
               return;
             }
           });
@@ -952,7 +952,7 @@ app.post("/withdraw", function (req, res) {　
     console.log('/withdraw info: ', qs.hash);
     qs = JSON.parse(JSON.stringify(qs.hash));
   }　
-  console.log('/withdraw from', qs.depositAddress);
+  console.log('/withdraw from', qs.withdrawAddress);
   console.log('/withdraw value', qs.value);
   // 查询方法
   result = Actions.withdraw({
