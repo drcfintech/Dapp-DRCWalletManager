@@ -947,7 +947,7 @@ app.post("/getDepositTxsDetail", function (req, res) {　　
 
 app.post("/withdraw", function (req, res) {　
   console.log('/withdraw info: ', qs.hash);
-  qs = JSON.parse(qs.hash);　
+  qs = JSON.parse(JSON.stringify(qs.hash));　
   console.log('/withdraw from', qs.depositAddress);
   console.log('/withdraw value', qs.value);
   // 查询方法
