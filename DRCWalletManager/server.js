@@ -887,9 +887,11 @@ app.use((req, res, next) => {
   req.on('data', function (chunk) {
     // 将前台传来的值，转回对象类型
     qs = querystring.parse(chunk);
+    console.log(qs);
     // 处理java post过来的数据
     if (qs.data) {
       qs = JSON.parse(qs.data);
+      console.log(qs);
     }
     next();
   })
@@ -946,8 +948,10 @@ app.post("/getDepositTxsDetail", function (req, res) {　　
 });　　　
 
 app.post("/withdraw", function (req, res) {　
-  console.log('/withdraw info: ', qs.hash);
-  qs = JSON.parse(JSON.stringify(qs.hash));　
+  if (qs.hash) {
+    console.log('/withdraw info: ', qs.hash);
+    qs = JSON.parse(JSON.stringify(qs.hash));
+  }　
   console.log('/withdraw from', qs.depositAddress);
   console.log('/withdraw value', qs.value);
   // 查询方法
