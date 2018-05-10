@@ -724,7 +724,8 @@ var Actions = {
     })
     .then((withdrawAddrCount) => {
       let num = withdrawAddrCount + 1;
-      DRCWalletMgrContract.methods.getDepositInfo(depositAddress).call((error, result) => {
+      console.log(requestObject.depositAddress);
+      DRCWalletMgrContract.methods.getDepositInfo(requestObject.depositAddress).call((error, result) => {
         if (error) {
           // 以太坊虚拟机的异常
           dataObject.res.end(JSON.stringify(responceData.evmError));
