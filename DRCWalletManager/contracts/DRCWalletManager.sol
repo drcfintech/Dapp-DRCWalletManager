@@ -295,13 +295,13 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         // mapping (bytes32 => address) withdrawWallets;
     }
 
-    mapping (address => DepositRepository) public depositRepos;
-    mapping (address => address) public walletDeposits;
+    mapping (address => DepositRepository) depositRepos;
+    mapping (address => address) walletDeposits;
     mapping (address => bool) public frozenDeposits;
 
-    ERC20 tk;
-    address tokenReturn;
-    uint256 chargeFee;
+    ERC20 public tk;
+    address public tokenReturn;
+    uint256 public chargeFee;
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, uint256 _value);
@@ -425,7 +425,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     //     require(_value <= _balance.sub(frozenAmount));
 
     //     DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-    //     return (deposWithdr.withdrawTokenToDefault(tk, _time, _value));
+    //     return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value));
     // }
 
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
@@ -437,7 +437,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         require(_value <= _balance.sub(frozenAmount));
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-        return (deposWithdr.withdrawTokenToDefault(tk, _time, _value, chargeFee, tokenReturn));
+        return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value, chargeFee, tokenReturn));
     }
 
     function checkWithdrawAddress(address _deposit, bytes32 _name, address _to) public view returns (bool, bool) {
@@ -504,7 +504,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
             tk.transfer(deposWithdr, _value.sub(available));
         }
 
-        return (deposWithdr.withdrawToken(tk, _time, _to, _value, chargeFee, tokenReturn));        
+        return (deposWithdr.withdrawToken(address(tk), _time, _to, _value, chargeFee, tokenReturn));        
     }
 
     // function withdrawNoCheck(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
