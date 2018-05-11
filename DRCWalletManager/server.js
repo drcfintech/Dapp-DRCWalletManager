@@ -10,6 +10,7 @@ const http = require('http');
 // 模块：对http请求所带的数据进行解析  https://www.cnblogs.com/whiteMu/p/5986297.html
 const querystring = require('querystring');
 const contract = require('truffle-contract');
+const web3Coder = require('truffle-contract/node_modules/web3/lib/solidity/coder.js');
 const Web3 = require('web3');
 // 解决Error：Web3ProviderEngine does not support synchronous requests
 const Promise = require('bluebird');
@@ -99,6 +100,132 @@ var Actions = {
     DRCTokenContract = new web3.eth.Contract(DRCToken_contractABI, DRCToken_contractAT, {});
     DRCWalletMgrContract.setProvider(web3.currentProvider);
     DRCTokenContract.setProvider(web3.currentProvider);
+
+    // bind token address
+        // let gasPrice;
+
+        // // 拿到rawTx里面的data部分
+        // console.log(DRCToken_contractAT);
+        // let encodeData_param = web3.eth.abi.encodeParameters(['address'], [DRCToken_contractAT]);
+        // let encodeData_function = web3.eth.abi.encodeFunctionSignature('bindToken(address)');
+        // console.log(encodeData_function);
+        // let encodeData = encodeData_function + encodeData_param.slice(2);
+        // console.log(encodeData);
+
+
+        // // 获取账户余额  警告 要大于 0.001Eth
+        // const getBalance = (callback) => {
+        //   web3.eth.getBalance(web3.eth.defaultAccount, (error, balance) => {
+        //     if (error) {
+        //       dataObject.res.end(JSON.stringify(responceData.evmError));
+        //       // 保存log
+        //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        //       return;
+        //     }
+        //     console.log('balance =>', balance);
+        //     if (balance && web3.utils.fromWei(balance, "ether") < 0.001) {
+        //       // 返回failed 附带message
+        //       dataObject.res.end(JSON.stringify(responceData.lowBalance));
+        //       // 保存log
+        //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
+        //       return;
+        //     }
+        //     callback();
+        //   });
+        // }
+
+        // // 获取data部分的nonce
+        // const getNonce = () => {
+        //   return new Promise((resolve, reject) => {
+        //     web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
+        //       if (error) reject(error);
+        //       resolve(web3.utils.toHex(result));
+        //     });
+        //   });
+        // }
+        // // 获取data部分的gasPrice
+        // const getGasPrice = () => {
+        //   return new Promise((resolve, reject) => {
+        //     web3.eth.getGasPrice((error, result) => {
+        //       if (error) reject(error);
+        //       //resolve(web3.utils.toHex(result));
+        //       gasPrice = web3.utils.fromWei(result, "gwei");
+        //       console.log('gasPrice  ', gasPrice + 'gwei');
+        //       if (gasPrice > 2.5) {
+        //         result = 4000000000;
+        //       } else {
+        //         resolve(web3.utils.toHex(result * 1.5));
+        //       }
+        //     });
+        //   });
+        // }
+
+        // // 给tx签名，并且发送上链
+        // const sendTransaction = (rawTx) => {
+        //   return new Promise((resolve, reject) => {
+        //     let tx = new Tx(rawTx);
+
+        //     // 解决 RangeError: private key length is invalid
+        //     tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
+        //     let serializedTx = tx.serialize();
+        //     // 签好的tx发送到链上
+        //     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+        //     .on('receipt', (receipt) => {
+        //       console.log(receipt);
+        //       resolve(receipt);
+        //     })
+        //     .on('confirmation', (confirmationNumber, receipt) => {
+        //     });
+        //   });
+        // }
+
+        // // 上链结果响应到请求方
+        // const returnResult = (result) => {
+        //   let returnObject = {from: contractAT};
+        //   returnObject.txHash = result.transactionHash;
+        //   returnObject.gasUsed = result.gasUsed;
+        //   returnObject.gasPrice = gasPrice;
+        //   console.log(returnObject);
+
+        //   logObject = result.logs[0];
+        //   console.log(logObject);
+
+        //   // 重置
+        //   returnObject = {};
+        //   // 保存log
+        //   // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
+        // }
+
+        // getBalance(() => {
+        //   Promise.all([getNonce(), getGasPrice()])
+        //     .then(values => {
+        //       let rawTx = {
+        //         nonce: values[0],
+        //         to: contractAT,
+        //         gasPrice: values[1],
+        //         gasLimit: web3.utils.toHex(5900000),
+        //         data: encodeData
+        //       };
+        //       return rawTx;
+        //     })
+        //     .then((rwaTx) => {
+        //       return sendTransaction(rwaTx);
+        //     })
+        //     .then((result) => {
+        //       returnResult(result);
+        //     })
+        //     .catch(e => {
+        //       if (e) {
+        //         console.log('evm error', e);
+        //         // dataObject.res.end(JSON.stringify(responceData.evmError));
+        //         // 重置
+        //         returnObject = {};
+        //         // 保存log
+        //         // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+        //         return;
+        //       }
+        //     })
+        // });
   },
 
   // 往链上存数据
@@ -723,20 +850,39 @@ var Actions = {
       return result;
     })
     .then((withdrawAddrCount) => {
-      let num = withdrawAddrCount + 1;
+      let num = parseInt(withdrawAddrCount) + 1;
       console.log(requestObject.depositAddress);
-      DRCWalletMgrContract.methods.getDepositInfo(requestObject.depositAddress).call((error, result) => {
-        console.log(result);
-        if (error) {
-          // 以太坊虚拟机的异常
-          dataObject.res.end(JSON.stringify(responceData.evmError));
-          // 保存log
-          log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
-          return;
-        }
 
-        console.log(' 充值地址余额查询结果   \n', result['0']);
-        console.log(' 充值地址冻结查询结果   \n', result['1']);
+      let callData_param = web3.eth.abi.encodeParameter(
+        'address', 
+        requestObject.depositAddress
+      );
+      console.log(callData_param);
+      let callData_function = web3.eth.abi.encodeFunctionSignature('getDepositInfo(address)');
+      console.log(callData_function);
+      let callData = callData_function + callData_param.slice(2);
+      console.log(callData);
+      let calldata = {
+        to: contractAT,
+        data: callData
+      };
+
+      web3.eth.call(calldata)
+      .then((result) => {
+        console.log(result);
+      });
+
+      DRCWalletMgrContract.methods.getDepositInfo(requestObject.depositAddress).call((error, result) => {
+        // if (error) {
+        //   // 以太坊虚拟机的异常
+        //   dataObject.res.end(JSON.stringify(responceData.evmError));
+        //   // 保存log
+        //   log.saveLog(operation[2], new Date().toLocaleString(), qs.depositAddress, 0, 0, responceData.evmError);
+        //   return;
+        // }
+
+        // console.log(' 充值地址余额查询结果   \n', result['0']);
+        // console.log(' 充值地址冻结查询结果   \n', result['1']);
         // 返回值显示已经有该hash的记录      
         // if (result['0'] < requestObject.value || (result['0'] - result['1']) < requestObject.value) {
         //   dataObject.res.end(JSON.stringify(responceData.notEnoughBalance));
@@ -754,21 +900,25 @@ var Actions = {
           // 拿到rawTx里面的data部分
           console.log(requestObject);
           let depositTime = new Date().getUTCMilliseconds() + 60 * 1000; // add 1 more minute
-          let withdrawAddrName = new Buffer(32);
-          withdrawAddrName.write('withdraw address ' + num);
+          let withdrawAddrName = 'withdraw address ' + num;
+          console.log(withdrawAddrName);
+          // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
+          let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
+          console.log(withdrawAddrNameBytes);
           let encodeData_params = web3.eth.abi.encodeParameters(
-            ['address', 'uint256', 'bytes32', 'address','uint256'], 
+            ['address', 'uint256', 'bytes32', 'address','uint256','bool'], 
             [requestObject.depositAddress.slice(2), 
               depositTime, 
-              withdrawAddrName,
+              withdrawAddrNameBytes,
               requestObject.withdrawAddress.slice(2),
-              equestObject.value]
+              requestObject.value,
+              false]
           );
           console.log(encodeData_params);
-          let encodeData_function = web3.eth.abi.encodeFunctionSignature('withdraw(address, uint256, bytes32, address, uint256)');
-          console.log(encodeData_function);
-          let encodeData = encodeData_function + encodeData_params;
-          console.log(encodeData);
+          let encodeData_function = web3.eth.abi.encodeFunctionSignature('withdrawWithFee(address, uint256, bytes32, address, uint256, bool)');
+          // console.log(encodeData_function);
+          let encodeData = encodeData_function + encodeData_params.slice(2);
+          // console.log(encodeData);
 
 
           // 获取账户余额  警告 要大于 0.001Eth

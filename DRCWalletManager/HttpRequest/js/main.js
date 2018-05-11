@@ -2,7 +2,7 @@ $(function () {　　
     // 服务器url
     const serverUrl = "http://127.0.0.1:3050";
     // const serverUrl = "http://dapp.dev.rcitech.cn:5030";
-    //const serverUrl = "http://192.168.100.123:3050";
+    // const serverUrl = "http://192.168.100.123:3050";
     // 操作耗时
     let timeStart = 0;
     let timeEnd = 0;
@@ -258,10 +258,16 @@ $(function () {　　
     // “获取链上信息”按钮的点击事件
     let withdraw = function () {
         let hash = $("#hash").val().trim();
+        let hash2 = $("#hash2").val().trim();
         let value = $("#value").val().trim();
         // 前处理
         clearResultArea();
         if (!checkInput(hash)) {
+            $("#error").html("ERRO: 请正确输入40位地址值，以0x开头 <br>");
+            $('#loader').hide();
+            return;
+        };
+        if (!checkInput(hash2)) {
             $("#error").html("ERRO: 请正确输入40位地址值，以0x开头 <br>");
             $('#loader').hide();
             return;
@@ -280,7 +286,8 @@ $(function () {　　
             url: serverUrl + "/withdraw",
             method: "POST",
             data: {
-                withdrawAddress: hash,
+                depositAddress: hash,
+                withdrawAddress: hash2,
                 value: value
             },
             success: function (data) {
