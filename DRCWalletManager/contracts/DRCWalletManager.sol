@@ -297,7 +297,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
     mapping (address => DepositRepository) depositRepos;
     mapping (address => address) walletDeposits;
-    mapping (address => bool) public frozenDeposits;
+    mapping (address => bool) frozenDeposits;
 
     ERC20 public tk;
     address public tokenReturn;
@@ -327,13 +327,14 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         require(_wallet != address(0));
 
         DepositWithdraw deposWithdr = new DepositWithdraw(_wallet);
-        walletDeposits[_wallet] = address(deposWithdr);
-        depositRepos[deposWithdr].balance = 0;
-        depositRepos[deposWithdr].frozen = 0;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[deposWithdr].withdrawWallets;
+        address _deposit = address(deposWithdr);
+        walletDeposits[_wallet] = _deposit;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[address(deposWithdr)].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        emit CreateDepositAddress(_wallet, address(deposWithdr));
+        depositRepos[_deposit].balance = 0;
+        depositRepos[_deposit].frozen = 0;
 
+        emit CreateDepositAddress(_wallet, address(deposWithdr));
         return deposWithdr;
     }
 
@@ -430,13 +431,15 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
-        require(_value <= depositRepos[_deposit].balance);
 
-        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 _balance = tk.balanceOf(_deposit);
+        require(_value <= _balance);
+
+        depositRepos[_deposit].balance = _balance;
         uint256 frozenAmount = depositRepos[_deposit].frozen;
         require(_value <= _balance.sub(frozenAmount));
 
-        require(tk.transfer(msg.sender, _value));
+        // require(tk.transfer(msg.sender, _value));
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value, chargeFee, tokenReturn));
