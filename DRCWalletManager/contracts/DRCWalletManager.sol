@@ -330,7 +330,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         DepositWithdraw deposWithdr = new DepositWithdraw(_wallet);
         address _deposit = address(deposWithdr);
         walletDeposits[_wallet] = _deposit;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[address(deposWithdr)].withdrawWallets;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
         depositRepos[_deposit].balance = 0;
         depositRepos[_deposit].frozen = 0;
@@ -489,8 +489,8 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         }
 
         depositRepos[_deposit].balance = _balance;
-        uint256 frozenAmount = depositRepos[_deposit].frozen;
-        uint256 available = _balance.sub(frozenAmount);
+        // uint256 frozenAmount = depositRepos[_deposit].frozen;
+        uint256 available = _balance.sub(depositRepos[_deposit].frozen);
         if (_check) {
             require(_value <= available);
         }

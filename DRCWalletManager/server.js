@@ -1019,6 +1019,7 @@ var Actions = {
             returnObject = responceData.withdrawSuccess;
             // returnObject.txHash = result;
             returnObject.txHash = result.transactionHash;
+            returnObject.blockNubmber = result.blockNumber;
             returnObject.gasUsed = result.gasUsed;
             returnObject.gasPrice = gasPrice;
 
