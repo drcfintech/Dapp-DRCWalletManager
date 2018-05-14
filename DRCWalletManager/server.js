@@ -151,9 +151,11 @@ var Actions = {
               //resolve(web3.utils.toHex(result));
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
-              if (gasPrice > 2.5) {
-                result = 4000000000;
+              if (gasPrice > 3) {
+                gasPrice *= 1.25;
+                resolve(web3.utils.toHex(result * 1.25));
               } else {
+                gasPrice *= 1.5;
                 resolve(web3.utils.toHex(result * 1.5));
               }
             });
@@ -322,9 +324,11 @@ var Actions = {
               //resolve(web3.utils.toHex(result));
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
-              if (gasPrice > 2.5) {
-                result = 4000000000;
+              if (gasPrice > 3) {
+                gasPrice *= 1.25;
+                resolve(web3.utils.toHex(result * 1.25));
               } else {
+                gasPrice *= 1.5;
                 resolve(web3.utils.toHex(result * 1.5));
               }
             });
@@ -910,7 +914,8 @@ var Actions = {
 
           // 拿到rawTx里面的data部分
           console.log(requestObject);
-          let depositTime = new Date().getUTCMilliseconds() + 60 * 1000; // add 1 more minute
+          let depositTime = Math.round((new Date().getTime() + 60 * 1000) / 1000); // add 1 more minute
+          console.log(depositTime);
           let withdrawAddrName = 'withdraw address ' + num;
           console.log(withdrawAddrName);
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
@@ -922,14 +927,14 @@ var Actions = {
               depositTime, 
               withdrawAddrNameBytes,
               requestObject.withdrawAddress.slice(2),
-              requestObject.value,
+              requestObject.value * 1e18,
               false]
           );
-          // console.log(encodeData_params);
-          let encodeData_function = web3.eth.abi.encodeFunctionSignature('withdrawWithFee(address, uint256, bytes32, address, uint256, bool)');
-          // console.log(encodeData_function);
+          console.log(encodeData_params);
+          let encodeData_function = web3.eth.abi.encodeFunctionSignature('withdrawWithFee(address,uint256,bytes32,address,uint256,bool)');
+          console.log(encodeData_function);
           let encodeData = encodeData_function + encodeData_params.slice(2);
-          // console.log(encodeData);
+          console.log(encodeData);
 
 
           // 获取账户余额  警告 要大于 0.001Eth
@@ -971,8 +976,8 @@ var Actions = {
                 //resolve(web3.utils.toHex(result));
                 gasPrice = web3.utils.fromWei(result, "gwei");
                 console.log('gasPrice  ', gasPrice + 'gwei');
-                if (gasPrice > 4) result = gasPrice;
-                else result *= 1.25;
+                if (gasPrice > 3) result *= 1.25;
+                else result *= 1.5;
                 resolve(web3.utils.toHex(result));
               });
             });
@@ -1003,8 +1008,8 @@ var Actions = {
 
           // 上链结果响应到请求方
           const returnResult = (result) => {
-            status = web3.utils.hexToNumber(result.status);
-            if (!status) {
+            // status = web3.utils.hexToNumber(result.status);
+            if (!result.status) {
               dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
               log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
@@ -1039,6 +1044,7 @@ var Actions = {
                 gasLimit: web3.utils.toHex(5900000),
                 data: encodeData
               };
+              gasPrice = values[1];
               return rawTx;
             })
             .then((rwaTx) => {

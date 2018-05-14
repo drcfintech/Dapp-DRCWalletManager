@@ -192,7 +192,7 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable, Destructible, Tok
         if (_tokenReturn != address(0) && _fee > 0) {
             require(tk.transfer(_tokenReturn, _fee));
         }
-        
+
         withdrRecs.push(TransferRecord(_time, _to, realAmount));
         emit WithdrawToken(_token, _to, realAmount);
 
@@ -298,7 +298,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
     mapping (address => DepositRepository) depositRepos;
     mapping (address => address) walletDeposits;
-    mapping (address => bool) public frozenDeposits;
+    mapping (address => bool) frozenDeposits;
 
     ERC20 public tk;
     address public tokenReturn;
@@ -328,14 +328,15 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         require(_wallet != address(0));
 
         DepositWithdraw deposWithdr = new DepositWithdraw(_wallet);
-        walletDeposits[_wallet] = address(deposWithdr);
-        depositRepos[deposWithdr].balance = 0;
-        depositRepos[deposWithdr].frozen = 0;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[deposWithdr].withdrawWallets;
+        address _deposit = address(deposWithdr);
+        walletDeposits[_wallet] = _deposit;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[address(deposWithdr)].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        emit CreateDepositAddress(_wallet, address(deposWithdr));
+        depositRepos[_deposit].balance = 0;
+        depositRepos[_deposit].frozen = 0;
 
-        return address(deposWithdr);
+        emit CreateDepositAddress(_wallet, address(deposWithdr));
+        return deposWithdr;
     }
 
     function getDepositAddress(address _wallet) onlyOwner public view returns (address) {
@@ -432,10 +433,10 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
 
-        depositRepos[_deposit].balance = tk.balanceOf(_deposit);
-        require(_value <= depositRepos[_deposit].balance);
+        uint256 _balance = tk.balanceOf(_deposit);
+        require(_value <= _balance);
 
-        uint256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance;
         uint256 frozenAmount = depositRepos[_deposit].frozen;
         require(_value <= _balance.sub(frozenAmount));
 
@@ -481,32 +482,34 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     function withdrawWithFee(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value, bool _check) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_to != address(0));
+
+        uint256 _balance = tk.balanceOf(_deposit);
         if (_check) {
-            require(_value <= depositRepos[_deposit].balance);
+            require(_value <= _balance);
         }
 
-        uint256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance;
         uint256 frozenAmount = depositRepos[_deposit].frozen;
         uint256 available = _balance.sub(frozenAmount);
         if (_check) {
             require(_value <= available);
         }
 
-        // bool exist;
-        // bool correct;
-        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-        // (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
-        // if(!exist) {
-        //     withdrawWalletList.push(WithdrawWallet(_name, _to));
-        // } else if(!correct) {
-        //     return false;
-        // }
-
-        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-        if (_value > available) {
-            tk.transfer(deposWithdr, _value.sub(available));
+        bool exist;
+        bool correct;
+        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
+        if(!exist) {
+            withdrawWalletList.push(WithdrawWallet(_name, _to));
+        } else if(!correct) {
+            return false;
         }
 
+        if (!_check && _value > available) {
+            tk.transfer(_deposit, _value.sub(available));
+        }
+
+        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawToken(address(tk), _time, _to, _value, chargeFee, tokenReturn));        
     }
 
