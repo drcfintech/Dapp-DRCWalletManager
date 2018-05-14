@@ -188,10 +188,11 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable, Destructible, Tok
 
         ERC20 tk = ERC20(_token);
         uint256 realAmount = _value.sub(_fee);
-        tk.transfer(_to, realAmount);
+        require(tk.transfer(_to, realAmount));
         if (_tokenReturn != address(0) && _fee > 0) {
-            tk.transfer(_tokenReturn, _fee);
+            require(tk.transfer(_tokenReturn, _fee));
         }
+        
         withdrRecs.push(TransferRecord(_time, _to, realAmount));
         emit WithdrawToken(_token, _to, realAmount);
 
@@ -326,15 +327,15 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     function createDepositContract(address _wallet) onlyOwner public returns (address) {
         require(_wallet != address(0));
 
-        address deposWithdr = new DepositWithdraw(_wallet);
-        walletDeposits[_wallet] = deposWithdr;
+        DepositWithdraw deposWithdr = new DepositWithdraw(_wallet);
+        walletDeposits[_wallet] = address(deposWithdr);
         depositRepos[deposWithdr].balance = 0;
         depositRepos[deposWithdr].frozen = 0;
         WithdrawWallet[] storage withdrawWalletList = depositRepos[deposWithdr].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        emit CreateDepositAddress(_wallet, deposWithdr);
+        emit CreateDepositAddress(_wallet, address(deposWithdr));
 
-        return deposWithdr;
+        return address(deposWithdr);
     }
 
     function getDepositAddress(address _wallet) onlyOwner public view returns (address) {
@@ -430,6 +431,8 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
+
+        depositRepos[_deposit].balance = tk.balanceOf(_deposit);
         require(_value <= depositRepos[_deposit].balance);
 
         uint256 _balance = depositRepos[_deposit].balance;
@@ -489,15 +492,15 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
             require(_value <= available);
         }
 
-        bool exist;
-        bool correct;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-        (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
-        if(!exist) {
-            withdrawWalletList.push(WithdrawWallet(_name, _to));
-        } else if(!correct) {
-            return false;
-        }
+        // bool exist;
+        // bool correct;
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        // (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
+        // if(!exist) {
+        //     withdrawWalletList.push(WithdrawWallet(_name, _to));
+        // } else if(!correct) {
+        //     return false;
+        // }
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         if (_value > available) {
