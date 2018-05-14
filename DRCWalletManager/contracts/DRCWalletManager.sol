@@ -326,13 +326,13 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     function createDepositContract(address _wallet) onlyOwner public returns (address) {
         require(_wallet != address(0));
 
-        address deposWithdr = new DepositWithdraw(_wallet);
-        walletDeposits[_wallet] = deposWithdr;
+        DepositWithdraw deposWithdr = new DepositWithdraw(_wallet);
+        walletDeposits[_wallet] = address(deposWithdr);
         depositRepos[deposWithdr].balance = 0;
         depositRepos[deposWithdr].frozen = 0;
         WithdrawWallet[] storage withdrawWalletList = depositRepos[deposWithdr].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        emit CreateDepositAddress(_wallet, deposWithdr);
+        emit CreateDepositAddress(_wallet, address(deposWithdr));
 
         return deposWithdr;
     }
@@ -435,6 +435,8 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         uint256 _balance = depositRepos[_deposit].balance;
         uint256 frozenAmount = depositRepos[_deposit].frozen;
         require(_value <= _balance.sub(frozenAmount));
+
+        require(tk.transfer(msg.sender, _value));
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value, chargeFee, tokenReturn));
