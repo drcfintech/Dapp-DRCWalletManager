@@ -1006,8 +1006,8 @@ var Actions = {
 
           // 上链结果响应到请求方
           const returnResult = (result) => {
-            // status = web3.utils.hexToNumber(result.status);
-            if (!result.status) {
+            status = web3.utils.hexToNumber(result.status);
+            if (!status) {
               dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
               log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
@@ -1017,7 +1017,7 @@ var Actions = {
             returnObject = responceData.withdrawSuccess;
             // returnObject.txHash = result;
             returnObject.txHash = result.transactionHash;
-            returnObject.blockNubmber = result.blockNumber;
+            returnObject.blockNumber = result.blockNumber;
             returnObject.gasUsed = result.gasUsed;
             returnObject.gasPrice = gasPrice;
 
