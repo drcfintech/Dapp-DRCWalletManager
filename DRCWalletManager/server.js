@@ -39,7 +39,7 @@ let DRCWalletMgrContract;
 let account;
 
 // Token智能合约
-const DRCToken_artifacts = require('./build/contracts/DRCToken.json');
+const DRCToken_artifacts = require('../../drctoken/build/contracts/DRCToken.json');
 // Token合约发布地址
 const DRCToken_contractAT = DRCToken_artifacts.networks['4'].address;
 
