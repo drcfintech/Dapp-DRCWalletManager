@@ -307,6 +307,8 @@ $(function () {　　
 
                 $("#txHash").html("txHash " + dataObject.txHash ||
                     "empty data");
+                $('#blockNumber').html("block number " + parseInt(dataObject.blockNumber) ||
+                    "empty data");
                 $('#gasUsed').html("gasUsed " + dataObject.gasUsed ||
                     "empty data");
                 $('#gasPrice').html("gasPrice " + parseInt(dataObject.gasPrice) +

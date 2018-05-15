@@ -152,10 +152,8 @@ var Actions = {
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
               if (gasPrice > 3) {
-                gasPrice *= 1.25;
                 resolve(web3.utils.toHex(result * 1.25));
               } else {
-                gasPrice *= 1.5;
                 resolve(web3.utils.toHex(result * 1.5));
               }
             });
@@ -208,6 +206,7 @@ var Actions = {
                 gasLimit: web3.utils.toHex(5900000),
                 data: encodeData
               };
+              gasPrice = web3.utils.fromWei(values[1], "gwei");
               return rawTx;
             })
             .then((rwaTx) => {
@@ -325,10 +324,8 @@ var Actions = {
               gasPrice = web3.utils.fromWei(result, "gwei");
               console.log('gasPrice  ', gasPrice + 'gwei');
               if (gasPrice > 3) {
-                gasPrice *= 1.25;
                 resolve(web3.utils.toHex(result * 1.25));
               } else {
-                gasPrice *= 1.5;
                 resolve(web3.utils.toHex(result * 1.5));
               }
             });
@@ -383,6 +380,7 @@ var Actions = {
                 gasLimit: web3.utils.toHex(5900000),
                 data: encodeData
               };
+              gasPrice = web3.utils.fromWei(values[1], "gwei");
               return rawTx;
             })
             .then((rwaTx) => {
@@ -1045,7 +1043,7 @@ var Actions = {
                 gasLimit: web3.utils.toHex(5900000),
                 data: encodeData
               };
-              gasPrice = values[1];
+              gasPrice = web3.utils.fromWei(values[1], "gwei");
               return rawTx;
             })
             .then((rwaTx) => {
