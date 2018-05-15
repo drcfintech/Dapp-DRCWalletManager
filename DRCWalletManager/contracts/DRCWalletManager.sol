@@ -114,7 +114,7 @@ contract withdrawable is Ownable {
     // }
 }
 
-contract DepositWithdraw is Claimable, Pausable, withdrawable, Destructible, TokenDestructible {
+contract DepositWithdraw is Claimable, Pausable, withdrawable {
     using SafeMath for uint256;
 
     struct TransferRecord {
@@ -290,7 +290,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     }
 
     struct DepositRepository {
-        uint256 balance;
+        // uint256 balance;
         uint256 frozen;
         WithdrawWallet[] withdrawWallets;
         // mapping (bytes32 => address) withdrawWallets;
@@ -298,7 +298,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
     mapping (address => DepositRepository) depositRepos;
     mapping (address => address) walletDeposits;
-    mapping (address => bool) frozenDeposits;
+    mapping (address => bool) public frozenDeposits;
 
     ERC20 public tk;
     address public tokenReturn;
@@ -332,7 +332,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         walletDeposits[_wallet] = _deposit;
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        depositRepos[_deposit].balance = 0;
+        // depositRepos[_deposit].balance = 0;
         depositRepos[_deposit].frozen = 0;
 
         emit CreateDepositAddress(_wallet, address(deposWithdr));
@@ -346,20 +346,20 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         return deposit;
     }
 
-    function getDepositInfo(address _deposit) onlyOwner public returns (uint256, uint256) {
+    function getDepositInfo(address _deposit) onlyOwner public view returns (uint256, uint256) {
         require(_deposit != address(0));
         uint256 _balance = tk.balanceOf(_deposit);
         uint256 frozenAmount = depositRepos[_deposit].frozen;
-        depositRepos[_deposit].balance = _balance;
+        // depositRepos[_deposit].balance = _balance;
 
         return (_balance, frozenAmount);
     }
 
-    function getDepositBalance(address _deposit) onlyOwner public returns (uint256) {
+    function getDepositBalance(address _deposit) onlyOwner public view returns (uint256) {
         require(_deposit != address(0));
         uint256 _balance = tk.balanceOf(_deposit);
 
-        depositRepos[_deposit].balance = _balance;
+        // depositRepos[_deposit].balance = _balance;
         return _balance;
     }
 
@@ -436,7 +436,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         uint256 _balance = tk.balanceOf(_deposit);
         require(_value <= _balance);
 
-        depositRepos[_deposit].balance = _balance;
+        // depositRepos[_deposit].balance = _balance;
         uint256 frozenAmount = depositRepos[_deposit].frozen;
         require(_value <= _balance.sub(frozenAmount));
 
@@ -488,7 +488,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
             require(_value <= _balance);
         }
 
-        depositRepos[_deposit].balance = _balance;
+        // depositRepos[_deposit].balance = _balance;
         // uint256 frozenAmount = depositRepos[_deposit].frozen;
         uint256 available = _balance.sub(depositRepos[_deposit].frozen);
         if (_check) {
@@ -507,6 +507,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
         if (!_check && _value > available) {
             tk.transfer(_deposit, _value.sub(available));
+            _value = _value.sub(available);
         }
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
