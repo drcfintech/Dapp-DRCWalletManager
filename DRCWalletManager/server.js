@@ -906,8 +906,8 @@ var Actions = {
         }
 
         if (!ifCheck || (balanceVal - frozenVal) >= requestObject.value) {
-          // 新建空对象，作为http请求的返回值
-          let returnObject = {};
+          // 新建空对象，作为http请求的返回值  
+          let returnObject = responceData.withdrawSuccess;      
           let gasPrice;
 
           // 拿到rawTx里面的data部分
@@ -1013,9 +1013,7 @@ var Actions = {
 
               return;
             }
-
-            returnObject = responceData.withdrawSuccess;
-            // returnObject.txHash = result;
+            
             returnObject.txHash = result.transactionHash;
             returnObject.blockNumber = result.blockNumber;
             returnObject.gasUsed = result.gasUsed;
