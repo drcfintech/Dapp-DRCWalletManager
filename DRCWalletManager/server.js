@@ -883,7 +883,10 @@ app.use((req, res, next) => {
 
 // 验签模块
 app.use((req, res, next) => {
-  if (validation.validate(JSON.stringify(qs.hash), qs.sign)) {
+  if (typeof qs.hash != 'string') {
+    qs.hash = JSON.stringify(qs.hash);
+  }
+  if (validation.validate(qs.hash, qs.sign)) {
     next();
   } else {
     // 验签不通过，返回错误信息

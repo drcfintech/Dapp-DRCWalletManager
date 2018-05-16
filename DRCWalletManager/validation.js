@@ -18,8 +18,11 @@ module.exports = {
 
         // 取得原文
         let inputData = message;
+        console.log(inputData);
+
         // 签名之后的数据
         let inputSig = signature;
+        console.log(signature);
 
         verify.update(inputData);
 
