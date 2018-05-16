@@ -95,82 +95,100 @@ function initWeb3Provider() {
   }
 }
 
-let TxExecution = function(encodeData, resultCallback) {
-  let gasPrice;
+let gasPrice;
 
-      // 获取账户余额  警告 要大于 0.001Eth
-      const getBalance = (callback) => {
-        web3.eth.getBalance(web3.eth.defaultAccount, (error, balance) => {
-          if (error) {
-            dataObject.res.end(JSON.stringify(responceData.evmError));
-            // 保存log
-            log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-            return;
-          }
-          console.log('balance =>', balance);
-          if (balance && web3.utils.fromWei(balance, "ether") < 0.001) {
-            // 返回failed 附带message
-            dataObject.res.end(JSON.stringify(responceData.lowBalance));
-            // 保存log
-            log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
-            return;
-          }
-          callback();
-        });
+// 获取账户余额  警告 要大于 0.001Eth
+const getBalance = (callback, dataObject = {}) => {
+  web3.eth.getBalance(web3.eth.defaultAccount, (error, balance) => {
+    if (error) {
+      if (dataObject != {}) {
+        dataObject.res.end(JSON.stringify(responceData.evmError));
       }
-
-      // 获取data部分的nonce
-      const getNonce = () => {
-        return new Promise((resolve, reject) => {
-          web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
-            if (error) reject(error);
-            resolve(web3.utils.toHex(result));
-          });
-        });
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+      return;
+    }
+    console.log('balance =>', balance);
+    if (balance && web3.utils.fromWei(balance, "ether") < 0.001) {
+      // 返回failed 附带message
+      if (dataObject != {}) {
+        dataObject.res.end(JSON.stringify(responceData.lowBalance));
       }
-        
-      // 获取data部分的gasPrice
-      const getGasPrice = () => {
-        return new Promise((resolve, reject) => {
-          web3.eth.getGasPrice((error, result) => {
-            if (error) reject(error);
-            //resolve(web3.utils.toHex(result));
-            gasPrice = web3.utils.fromWei(result, "gwei");
-            console.log('gasPrice  ', gasPrice + 'gwei');
-            if (gasPrice >= 3) result *= 1.25;
-            else if (gasPrice >= 2) result *= 1.5;
-            else result *= 2;
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
+      return;
+    }
+    callback(dataObject);
+  });
+}
 
-            resolve(web3.utils.toHex(result));
-          });
-        });
-      }
+// 获取data部分的nonce
+const getNonce = () => {
+  return new Promise((resolve, reject) => {
+    web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
+      if (error) reject(error);
+      resolve(web3.utils.toHex(result));
+    });
+  })
+  .catch(err => {
+    return err;
+  });
+}
+  
+// 获取data部分的gasPrice
+const getGasPrice = () => {
+  return new Promise((resolve, reject) => {
+    web3.eth.getGasPrice((error, result) => {
+      if (error) reject(error);
+      //resolve(web3.utils.toHex(result));
+      gasPrice = web3.utils.fromWei(result, "gwei");
+      console.log('gasPrice  ', gasPrice + 'gwei');
+      if (gasPrice >= 3) result *= 1.25;
+      else if (gasPrice >= 2) result *= 1.5;
+      else result *= 2;
 
-      // 给tx签名，并且发送上链
-      const sendTransaction = (rawTx) => {
-        return new Promise((resolve, reject) => {
-          let tx = new Tx(rawTx);
+      resolve(web3.utils.toHex(result));
+    });
+  })
+  .catch(err => {
+    return err;
+  });
+}
 
-          // 解决 RangeError: private key length is invalid
-          tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
-          let serializedTx = tx.serialize();
-          // 签好的tx发送到链上
-          web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-          .on('receipt', (receipt) => {
-            console.log(receipt);
-            resolve(receipt);
-          })
-          .on('confirmation', (confirmationNumber, receipt) => {
-          });
-        });
-      }
+// 给tx签名，并且发送上链
+const sendTransaction = (rawTx) => {
+  return new Promise((resolve, reject) => {
+    let tx = new Tx(rawTx);
+
+    // 解决 RangeError: private key length is invalid
+    tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
+    let serializedTx = tx.serialize();
+    // 签好的tx发送到链上
+    web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+    .on('receipt', (receipt) => {
+      console.log(receipt);
+      resolve(receipt);
+    })
+    .on('confirmation', (confirmationNumber, receipt) => {
+    })
+    .catch(err => {
+      reject(err);
+    });
+  })
+  .catch(err => {
+    return err;
+  });
+}
+
+let TxExecution = function(encodeData, resultCallback, dataObject = {}) {   
 
       // 上链结果响应到请求方
       // const returnResult = (result) => {
       //   resultCallback(result);        
       // }
 
-      getBalance(() => {
+      getBalance((dataObject) => {
+        let returnObject = {};
         Promise.all([getNonce(), getGasPrice()])
           .then(values => {
             let rawTx = {
@@ -188,12 +206,14 @@ let TxExecution = function(encodeData, resultCallback) {
             return sendTransaction(rwaTx);
           })
           .then((result) => {
-            resultCallback(result);
+            resultCallback(result, returnObject);
           })
           .catch(e => {
             if (e) {
               console.log('evm error', e);
-              // dataObject.res.end(JSON.stringify(responceData.evmError));
+              if(dataObject != {}) {
+                dataObject.res.end(JSON.stringify(responceData.transactionError));
+              }
               // 重置
               returnObject = {};
               // 保存log
@@ -227,8 +247,8 @@ var Actions = {
         let encodeData = encodeData_function + encodeData_param.slice(2);
         console.log(encodeData);
   
-        let processResult = (result) => {
-          let returnObject = {from: contractAT};
+        let processResult = (result, returnObject) => {
+          returnObject = {from: contractAT};
           returnObject.txHash = result.transactionHash;
           returnObject.gasUsed = result.gasUsed;
           returnObject.gasPrice = gasPrice;
@@ -291,8 +311,6 @@ var Actions = {
       }
 
       if (resultValue == "0") {
-        // 新return对象，作为http请求的返回值
-        let returnObject = responceData.createDepositAddrSuccess;
         // let gasPrice;
 
         // 拿到rawTx里面的data部分
@@ -303,75 +321,10 @@ var Actions = {
         let encodeData = encodeData_function + encodeData_param.slice(2);
         console.log(encodeData);
 
-
-        // 获取账户余额  警告 要大于 0.001Eth
-        // const getBalance = (callback) => {
-        //   web3.eth.getBalance(web3.eth.defaultAccount, (error, balance) => {
-        //     if (error) {
-        //       dataObject.res.end(JSON.stringify(responceData.evmError));
-        //       // 保存log
-        //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-        //       return;
-        //     }
-        //     console.log('balance =>', balance);
-        //     if (balance && web3.utils.fromWei(balance, "ether") < 0.001) {
-        //       // 返回failed 附带message
-        //       dataObject.res.end(JSON.stringify(responceData.lowBalance));
-        //       // 保存log
-        //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.lowBalance);
-        //       return;
-        //     }
-        //     callback();
-        //   });
-        // }
-
-        // // 获取data部分的nonce
-        // const getNonce = () => {
-        //   return new Promise((resolve, reject) => {
-        //     web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
-        //       if (error) reject(error);
-        //       resolve(web3.utils.toHex(result));
-        //     });
-        //   });
-        // }
-        // // 获取data部分的gasPrice
-        // const getGasPrice = () => {
-        //   return new Promise((resolve, reject) => {
-        //     web3.eth.getGasPrice((error, result) => {
-        //       if (error) reject(error);
-        //       //resolve(web3.utils.toHex(result));
-        //       gasPrice = web3.utils.fromWei(result, "gwei");
-        //       console.log('gasPrice  ', gasPrice + 'gwei');
-        //       if (gasPrice >= 3) result *= 1.25;
-        //       else if (gasPrice >= 2) result *= 1.5;
-        //       else result *= 2;
-
-        //       resolve(web3.utils.toHex(result));
-        //     });
-        //   });
-        // }
-
-        // // 给tx签名，并且发送上链
-        // const sendTransaction = (rawTx) => {
-        //   return new Promise((resolve, reject) => {
-        //     let tx = new Tx(rawTx);
-
-        //     // 解决 RangeError: private key length is invalid
-        //     tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
-        //     let serializedTx = tx.serialize();
-        //     // 签好的tx发送到链上
-        //     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-        //     .on('receipt', (receipt) => {
-        //       console.log(receipt);
-        //       resolve(receipt);
-        //     })
-        //     .on('confirmation', (confirmationNumber, receipt) => {
-        //     });
-        //   });
-        // }
-
         // 上链结果响应到请求方
-        const returnResult = (result) => {
+        const returnResult = (result, returnObject) => {
+          // 新return对象，作为http请求的返回值
+          returnObject = responceData.createDepositAddrSuccess;
           returnObject.txHash = result.transactionHash;
           returnObject.gasUsed = result.gasUsed;
           returnObject.gasPrice = gasPrice;
@@ -388,39 +341,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
   
-        TxExecution(encodeData, returnResult);
-
-        // getBalance(() => {
-        //   Promise.all([getNonce(), getGasPrice()])
-        //     .then(values => {
-        //       let rawTx = {
-        //         nonce: values[0],
-        //         to: contractAT,
-        //         gasPrice: values[1],
-        //         gasLimit: web3.utils.toHex(GAS_LIMIT),
-        //         data: encodeData
-        //       };
-        //       gasPrice = web3.utils.fromWei(values[1], "gwei");
-        //       return rawTx;
-        //     })
-        //     .then((rwaTx) => {
-        //       return sendTransaction(rwaTx);
-        //     })
-        //     .then((result) => {
-        //       returnResult(result);
-        //     })
-        //     .catch(e => {
-        //       if (e) {
-        //         console.log('evm error', e);
-        //         dataObject.res.end(JSON.stringify(responceData.evmError));
-        //         // 重置
-        //         returnObject = {};
-        //         // 保存log
-        //         log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-        //         return;
-        //       }
-        //     })
-        // });
+        TxExecution(encodeData, returnResult, dataObject);       
       }
     });
 
@@ -481,6 +402,7 @@ var Actions = {
       }
 
       let returnObject = responceData.getDepositInfoSuccess;
+      console.log(result);
       returnObject.balance = result["0"];
       returnObject.frozenAmount = result["1"];
       // 返回success 附带message
@@ -544,120 +466,17 @@ var Actions = {
       })
       .then((events) => {
         let returnObject = responceData.getDepositTxSuccess;
-        returnObject.records = new Array(events.length); 
-
-      //   var getReturnObject = () => {
-      //     return new Promise((resolve, reject) => {
-      //       console.log(totalConfirmNumber);
-      //       console.log(blockHigh);   
-      //       console.log(events[i].blockNubmber);
-      //       console.log(blockHigh - events[i].blockNubmber);
-      //       console.log(totalConfirmNumber - (blockHigh - events[i].blockNubmber));
-      //       blockConfirm = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
-      //       let record = {
-      //         from: events[i].returnValues.from,
-      //         to: events[i].returnValues.to,
-      //         value: events[i].returnValues.value,
-      //         blockNumber: events[i].blockNumber,
-      //         blockConfirmNum: blockConfirm,
-      //         txHash: events[i].transactionHash
-      //       };
-
-      //       var gasPrice;
-      //       // const getGasPrice = () => {
-      //       //   return new Promise((resolve, reject) => {
-      //           web3.eth.getTransaction(events[i].transactionHash, (error, result) => {
-      //             if (error) reject(error);
-
-      //             gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-      //             record.gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-      //             console.log('gasPrice  ', result.gasPrice + 'gwei');
-      //             // resolve(result.gasPrice);
-      //           })
-      //           .then((result) => {
-      //             web3.eth.getTransactionReceipt(events[i].transactionHash, (error, result) => {
-      //               if (error) reject(error);
-  
-      //               record.gasUsed = result.gasUsed;
-      //               console.log('gasUsed  ', result.gasUsed);
-      //               // resolve(result.gasUsed);
-      //             });
-      //           });
-      //       //   });
-      //       // }
-
-      //       // const getGasUsed = () => {
-      //       //   return new Promise((resolve, reject) => {
-               
-      //       //   });
-      //       // }
-
-      //       // Promise.all([getGasPrice(), getGasUsed()])
-      //       // .then(values => {
-      //       //   record.gasPrice = values[0];
-      //       //   record.gasUsed = values[1];
-      //       // })
-      //       // .then(() => {
-      //       //   console.log(record);
-      //       //   // returnObject.records[i] = returnOneObject;
-      //       // })
-      //       // .catch(e => {
-      //       //   if (e) {
-      //       //     console.log('evm error', e);
-      //       //     dataObject.res.end(JSON.stringify(responceData.evmError));
-      //       //     // 重置
-      //       //     returnObject = {};
-      //       //     // 保存log
-      //       //     log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-      //       //     return;
-      //       //   }
-      //       // });
-
-      //       resolve();
-      //     });
-      //   });
-
-      //   Promise.all(promises)
-      //   .then(() => {
-      //     // 返回success 附带message
-      //     console.log(returnObject);
-      //     dataObject.res.end(JSON.stringify(returnObject));
-      //     // 重置
-      //     returnObject = {};
-      //     // 保存log
-      //     // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
-      //   })
-      //   .catch(e => {
-      //     if (e) {
-      //       console.log('evm error', e);
-      //       dataObject.res.end(JSON.stringify(responceData.evmError));
-      //       // 重置
-      //       returnObject = {};
-      //       // 保存log
-      //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-      //       return;
-      //     }
-      //   });
-      // });
+        returnObject.records = new Array(events.length);       
 
         for (var i = 0; i < events.length; i++) {
-          // var returnOneObject = returnObject.records[i];
-          // returnOneObject = {from: events[i].returnValues.from};          
-          // returnOneObject.to = events[i].returnValues.to;
-          // returnOneObject.value = events[i].returnValues.value;
-          // returnOneObject.blockNumber = events[i].blockNumber;  
           returnObject.records[i] = {from: events[i].returnValues.from};
           returnObject.records[i].to = events[i].returnValues.to;
           returnObject.records[i].value = events[i].returnValues.value;
           returnObject.records[i].blockNumber = events[i].blockNumber;
           console.log(totalConfirmNumber);
-          console.log(blockHigh);   
-          console.log(events[i].blockNubmber);
+          console.log(blockHigh);
           console.log(returnObject.records[i].blockNumber);
-          console.log(blockHigh - events[i].blockNubmber);
           console.log(blockHigh - returnObject.records[i].blockNumber);
-          // returnOneObject.blockConfirmNum = totalConfirmNumber - (blockHigh - events[i].blockNubmber);
-          // returnOneObject.txHash = events[i].transactionHash;
           returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber;
           returnObject.records[i].txHash = events[i].transactionHash;
         }
@@ -666,66 +485,15 @@ var Actions = {
         // 重置
         returnObject = {};
         // 保存log
-        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
-
-          // web3.eth.getTransaction(events[i].transactionHash)
-          // .then((result) => {
-          //   returnOneObject.gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-          //   console.log('gasPrice  ', returnOneObject.gasPrice + 'gwei');
-          //   return result.hash;
-          // })
-          // .then((txHash) => {
-          //   web3.eth.getTransactionReceipt(txHash)
-          //   .then((result) => {
-          //     returnOneObject.gasUsed = result.gasUsed;
-          //     console.log('gasUsed  ', returnOneObject.gasUsed);
-          //   });
-          // });
-
-        
-
-        // for (var i = 0; i < events.length; i++) {
-        //   var returnOneObject = returnObject.records[i];
-        //   Promise.all([getGasPrice(returnOneObject.txHash), getGasUsed(returnOneObject.txHash)])
-        //   .then(values => {
-        //     returnOneObject.gasPrice = values[0];
-        //     returnOneObject.gasUsed = values[1];
-        //   })
-        //   .then(() => {
-        //     console.log(returnOneObject);
-        //     // returnObject.records[i] = returnOneObject;
-        //   })
-        //   .catch(e => {
-        //     if (e) {
-        //       console.log('evm error', e);
-        //       dataObject.res.end(JSON.stringify(responceData.evmError));
-        //       // 重置
-        //       returnObject = {};
-        //       // 保存log
-        //       log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-        //       return;
-        //     }
-        //   });
-        // }         
-
-          // web3.eth.getTransaction(events[i].transactionHash, (result) => {
-          //   returnObject.records[i].gasPrice = web3.utils.fromWei(result.gasPrice, "gwei");
-          // });
-          // web3.eth.getTransactionReceipt(events[i].transactionHash, (result) => {
-          //   returnObject.records[i].gasUsed = result.gasUsed;
-          // }); 
-        
-      //   return returnObject;
-      // })
-      // .then((returnObject) => {
-      //   // 返回success 附带message
-      //   console.log(returnObject);
-      //   dataObject.res.end(JSON.stringify(returnObject));
-      //   // 重置
-      //   returnObject = {};
-      //   // 保存log
-      //   // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);        
       });
+    })
+    .catch(err => {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.evmError));
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+      return;
     });
   },
 
@@ -796,6 +564,7 @@ var Actions = {
           });
         });
       }
+      
       const getTxTimestamp = (block) => {
         return new Promise((resolve, reject) => {
           web3.eth.getBlock(block, (err, res) => {
@@ -1113,14 +882,14 @@ app.use((req, res, next) => {
 });
 
 // 验签模块
-// app.use((req, res, next) => {
-//   if (validation.validate(qs.hash)) {
-//     next();
-//   } else {
-//     // 验签不通过，返回错误信息
-//     res.end(JSON.stringify(responceData.validationFailed));
-//   };
-// });
+app.use((req, res, next) => {
+  if (validation.validate(qs.hash, qs.sign)) {
+    next();
+  } else {
+    // 验签不通过，返回错误信息
+    res.end(JSON.stringify(responceData.validationFailed));
+  };
+});
 
 
 /**********************************************/
