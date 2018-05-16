@@ -8,22 +8,23 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 module.exports = {
-    validate: (message) => {
+    validate: (message, signature) => {
         // 获取公钥字符串
-        let publicPem = fs.readFileSync(__dirname + '/key/key-cert.pem');
+        console.log(__dirname + '/key/mgrkey-cert.pem');
+        let publicPem = fs.readFileSync(__dirname + '/key/mgrkey-cert.pem');
         let publickey = publicPem.toString();
         // ---------------公钥验签开始---------------
         let verify = crypto.createVerify('RSA-SHA256');
 
         // 取得原文
-        let inputData = message.slice(0, 64);
+        let inputData = message;
         // 签名之后的数据
-        let inputSig = message.slice(64);
+        let inputSig = signature;
 
         verify.update(inputData);
 
-        let result = verify.verify(publickey, inputSig, 'hex');
-        // console.log('公钥验签结果', result);
+        let result = verify.verify(publickey, inputSig, 'base64');
+        console.log('公钥验签结果', result);
 
         return result;
     }
