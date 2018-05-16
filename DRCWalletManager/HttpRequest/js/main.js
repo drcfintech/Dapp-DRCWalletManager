@@ -87,7 +87,8 @@ $(function () {　　
             url: serverUrl + "/getDepositAddr",
             method: "POST",
             data: {
-                hash: hash
+                hash: hash,
+                sign: "EVZ5e7dfLJ/BUQH5l1a2h1QZ/WmInuOHz2yHI7ywouaEgibski+HZCbe/jk5/gEdUWdg/7To50RKlycSkWnSWhNetU3ehNjyB6E+6phs55TTv6AvWT6B/f5e9+tJ6QafFOuuPGMCBIPoFgsU41nsLK7rGJWYWTi7igh+XPX0O3G34Nv5a9bNwKkZKAYvhxvUh0vCjnrdD57SacbJ1YcvABVgkIN14AYnKY1f8XQeCRyMT9PoXPh/D3pZzFjPAY3c/7qdcntlMNHiFJ2foNpJrofoYup6opf06qnFhCweUP0j7H03yf+iL07FOxFn2vrQ6uzaOPBWIRKtHZILPFjnzg=="
             },
             success: function (data) {
                 timeEnd = new Date();
