@@ -547,7 +547,7 @@ var Actions = {
           web3.eth.getTransaction(txHash, (error, result) => {
             if (error) reject(error);
 
-            console.log('gasPrice  ', result.gasPrice + 'gwei');
+            if (result) console.log('gasPrice  ', result.gasPrice + 'gwei');
             resolve(result.gasPrice);
           });
         });
@@ -559,7 +559,7 @@ var Actions = {
             if (error) reject(error);
 
             // returnOneObject.gasUsed = result.gasUsed;
-            console.log('gasUsed  ', result.gasUsed);
+            if (result) console.log('gasUsed  ', result.gasUsed);
             resolve(result.gasUsed);
           });
         });
@@ -570,7 +570,7 @@ var Actions = {
           web3.eth.getBlock(block, (err, res) => {
             if (err) reject(err);
  
-            console.log('timestamp  ', res.timestamp);
+            if (res) console.log('timestamp  ', res.timestamp);
             resolve(res.timestamp);
           });
         });
