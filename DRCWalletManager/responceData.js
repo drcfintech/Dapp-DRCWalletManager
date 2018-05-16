@@ -23,6 +23,10 @@ module.exports = {
         status: "failed",
         msg: "非法请求"
     },
+    transactionError: {
+        status: "failed",
+        msg: "交易异常或失败"
+    },
     getDepositAddrSuccess: {
         status: "success",
         msg: "获取充值地址成功"
