@@ -937,7 +937,7 @@ app.post("/getDepositTxsDetail", function (req, res) {　　
 app.post("/withdraw", function (req, res) {　
   if (qs.hash) {
     console.log('/withdraw info: ', qs.hash);
-    qs = JSON.parse(JSON.stringify(qs.hash));
+    qs = JSON.parse(qs.hash);
   }　
   console.log('/withdraw from', qs.withdrawAddress);
   console.log('/withdraw from', qs.depositAddress);
