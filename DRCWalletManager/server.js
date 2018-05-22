@@ -1,6 +1,6 @@
 const validation = require("./validation.js");
 const log = require("./log/log.js");
-const timer = require("./timer.js");
+// const timer = require("./timer.js");
 const responceData = require("./responceData.js")
 // log.saveLog();
 const app = require('express')();
@@ -48,7 +48,7 @@ const DRCToken_contractABI = DRCToken_artifacts.abi;
 // 初始化Token合约实例
 let DRCTokenContract;
 
-const GAS_LIMIT = 6700000;
+const GAS_LIMIT = 6700000; // default gas limit
 
 
 // Add headers
@@ -131,7 +131,8 @@ const getNonce = () => {
     });
   })
   .catch(err => {
-    return err;
+    console.log("catch error when getNonce");
+    return new Promise.reject(err);
   });
 }
   
@@ -151,7 +152,8 @@ const getGasPrice = () => {
     });
   })
   .catch(err => {
-    return err;
+    console.log("catch error when getGasPrice");
+    return new Promise.reject(err);
   });
 }
 
@@ -176,7 +178,8 @@ const sendTransaction = (rawTx) => {
     });
   })
   .catch(err => {
-    return err;
+    console.log("catch error when sentTransaction");
+    return new Promise.reject(err);
   });
 }
 
