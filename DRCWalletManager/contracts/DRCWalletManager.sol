@@ -200,36 +200,6 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable {
     }
 
     /**
-	 * @dev withdraw tokens, send tokens to target
-     *
-     * @param _token the token address that will be withdraw
-	 * @param _to is where the tokens will be sent to
-	 *        _value is the number of the token
-	 */
-    // function withdrawToken(address _token, uint256 _time, address _to, uint256 _value) public onlyOwner whenNotPaused returns (bool) {
-    //     require(_to != address(0));
-    //     require(_token != address(0));
-
-    //     ERC20 tk = ERC20(_token);
-    //     tk.transfer(_to, _value);
-    //     withdrRecs.push(TransferRecord(_time, _to, _value));
-    //     emit WithdrawToken(_token, _to, _value);
-
-    //     return true;
-    // }
-
-    /**
-	 * @dev withdraw tokens, send tokens to target default wallet
-     *
-     * @param _token the token address that will be withdraw
-     * @param _time the timestamp occur the withdraw record
-	 * @param _value is the number of the token
-	 */
-    // function withdrawTokenToDefault(address _token, uint256 _time, uint256 _value) public onlyOwner whenNotPaused returns (bool) {
-    //     return withdrawToken(_token, _time, wallet, _value);
-    // }
-
-    /**
 	 * @dev withdraw tokens, send tokens to target default wallet
      *
      * @param _token the token address that will be withdraw
@@ -308,6 +278,11 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     event FrozenTokens(address indexed _deposit, uint256 _value);
     event ChangeDefaultWallet(address indexed _oldWallet, address _newWallet);
 
+    /**
+	 * @dev withdraw tokens, send tokens to target default wallet
+     *
+     * @param _token the token address that will be withdraw
+	 */
     function bindToken(address _token) onlyOwner public returns (bool) {
         require(_token != address(0));
 
@@ -418,18 +393,6 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         return true;
     }
 
-    // function withdraw(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
-    //     require(_deposit != address(0));
-    //     require(_value <= depositRepos[_deposit].balance);
-
-    //     uint256 _balance = depositRepos[_deposit].balance;
-    //     uint256 frozenAmount = depositRepos[_deposit].frozen;
-    //     require(_value <= _balance.sub(frozenAmount));
-
-    //     DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-    //     return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value));
-    // }
-
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
 
@@ -456,30 +419,22 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         return (false, true);
     }
 
-    // function withdraw(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
-    //     require(_deposit != address(0));
-    //     require(_to != address(0));
-    //     require(_value <= depositRepos[_deposit].balance);
-
-    //     uint256 _balance = depositRepos[_deposit].balance;
-    //     uint256 frozenAmount = depositRepos[_deposit].frozen;
-    //     require(_value <= _balance.sub(frozenAmount));
-
-    //     bool exist;
-    //     bool correct;
-    //     WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-    //     (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
-    //     if(!exist) {
-    //         withdrawWalletList.push(WithdrawWallet(_name, _to));
-    //     } else if(!correct) {
-    //         return false;
-    //     }
-
-    //     DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-    //     return (deposWithdr.withdrawToken(tk, _time, _to, _value));        
-    // }
-
-    function withdrawWithFee(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value, bool _check) onlyOwner public returns (bool) {
+    /**
+	 * @dev withdraw tokens, send tokens to target default wallet
+     *
+     * @param _deposit the deposit address that will be withdraw from
+     * @param _time the timestamp occur the withdraw record
+	 * @param _name the withdraw address alias name to verify
+     * @param _to the address the token will be transfer to 
+     * @param _value the token transferred value
+     * @param _check if we will check the value is valid
+	 */
+    function withdrawWithFee(address _deposit, 
+                             uint256 _time, 
+                             bytes32 _name, 
+                             address _to, 
+                             uint256 _value, 
+                             bool _check) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_to != address(0));
 
@@ -513,57 +468,5 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         return (deposWithdr.withdrawToken(address(tk), _time, _to, _value, chargeFee, tokenReturn));        
     }
-
-    // function withdrawNoCheck(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
-    //     require(_deposit != address(0));
-    //     require(_to != address(0));
-
-    //     uint256 _balance = depositRepos[_deposit].balance;
-    //     uint256 frozenAmount = depositRepos[_deposit].frozen;
-    //     uint256 available = _balance.sub(frozenAmount);
-
-    //     bool exist;
-    //     bool correct;
-    //     WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-    //     (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
-    //     if(!exist) {
-    //         withdrawWalletList.push(WithdrawWallet(_name, _to));
-    //     } else if(!correct) {
-    //         return false;
-    //     }
-
-    //     DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-    //     if (_value > available) {
-    //         tk.transfer(deposWithdr, _value.sub(available));
-    //     }
-
-    //     return (deposWithdr.withdrawToken(tk, _time, _to, _value));
-    // }
-
-    // function withdrawWithFeeNoCheck(address _deposit, uint256 _time, bytes32 _name, address _to, uint256 _value) onlyOwner public returns (bool) {
-    //     require(_deposit != address(0));
-    //     require(_to != address(0));
-
-    //     uint256 _balance = depositRepos[_deposit].balance;
-    //     uint256 frozenAmount = depositRepos[_deposit].frozen;
-    //     uint256 available = _balance.sub(frozenAmount);
-
-    //     bool exist;
-    //     bool correct;
-    //     WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-    //     (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
-    //     if(!exist) {
-    //         withdrawWalletList.push(WithdrawWallet(_name, _to));
-    //     } else if(!correct) {
-    //         return false;
-    //     }
-
-    //     DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-    //     if (_value > available) {
-    //         tk.transfer(deposWithdr, _value.sub(available));
-    //     }
-
-    //     return (deposWithdr.withdrawToken(tk, _time, _to, _value, chargeFee, tokenReturn));
-    // }
 
 }
