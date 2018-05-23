@@ -48,6 +48,16 @@ const DRCToken_contractABI = DRCToken_artifacts.abi;
 // 初始化Token合约实例
 let DRCTokenContract;
 
+// 智能合约
+const DRCWalletMgrParams_artifacts = require('./build/contracts/DRCWalletMgrParams.json');
+// 合约发布地址
+const DRCWalletMgrParams_contractAT = DRCWalletMgrParams_artifacts.networks['4'].address;
+
+// 合约abi
+const DRCWalletMgrParams_contractABI = DRCWalletMgrParams_artifacts.abi;
+// 初始化合约实例
+let DRCWalletMgrParamsContract;
+
 const GAS_LIMIT = 6700000; // default gas limit
 
 
@@ -236,8 +246,10 @@ var Actions = {
   start: function () {
     DRCWalletMgrContract = new web3.eth.Contract(contractABI, contractAT, {});
     DRCTokenContract = new web3.eth.Contract(DRCToken_contractABI, DRCToken_contractAT, {});
+    DRCWalletMgrParamsContract = new web3.eth.Contract(DRCWalletMgrParams_contractABI, DRCWalletMgrParams_contractAT, {});
     DRCWalletMgrContract.setProvider(web3.currentProvider);
     DRCTokenContract.setProvider(web3.currentProvider);
+    DRCWalletMgrParamsContract.setProvider(web3.currentProvider);
 
     // bind token address
     DRCWalletMgrContract.methods.tk().call()
@@ -245,11 +257,15 @@ var Actions = {
       bindTk = web3.utils.toHex(result);
       console.log(bindTk);
 
-      if (bindTk == "0x0") {
+      if (bindTk == "0x0000000000000000000000000000000000000000") {
         // 拿到rawTx里面的data部分
         console.log(DRCToken_contractAT);
-        let encodeData_param = web3.eth.abi.encodeParameters(['address'], [DRCToken_contractAT]);
-        let encodeData_function = web3.eth.abi.encodeFunctionSignature('bindToken(address)');
+        let encodeData_param = web3.eth.abi.encodeParameters(
+          ['address', 'address'], 
+          [DRCToken_contractAT, DRCWalletMgrParams_contractAT.slice(2)]
+        );
+        console.log(encodeData_param);
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('bindToken(address,address)');
         console.log(encodeData_function);
         let encodeData = encodeData_function + encodeData_param.slice(2);
         console.log(encodeData);
