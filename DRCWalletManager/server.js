@@ -165,7 +165,7 @@ const getGasPrice = () => {
     console.log("catch error when getGasPrice");
     return new Promise.reject(err);
   });
-}
+};
 
 // 给tx签名，并且发送上链
 const sendTransaction = (rawTx) => {
@@ -191,7 +191,7 @@ const sendTransaction = (rawTx) => {
     console.log("catch error when sentTransaction");
     return new Promise.reject(err);
   });
-}
+};
 
 let TxExecution = function(encodeData, resultCallback, dataObject = {}) {   
 
@@ -239,7 +239,7 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
             }
           });
       });
-}
+};
 
 var Actions = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
