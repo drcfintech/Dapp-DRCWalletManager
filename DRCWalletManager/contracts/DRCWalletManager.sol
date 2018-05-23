@@ -7,6 +7,7 @@ import 'zeppelin-solidity/contracts/lifecycle/Destructible.sol';
 import 'zeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import './DRCWalletMgrParams.sol';
 
 
 contract OwnerContract is Claimable {
@@ -123,8 +124,17 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable {
         uint256 value;
     }
 
+    struct accumulatedRecord {
+        uint256 mul;
+        uint256 count;
+        uint256 value;
+    }
+
     TransferRecord[] deposRecs;
     TransferRecord[] withdrRecs;
+
+    accumulatedRecord dayWithdrawRec;
+    accumulatedRecord monthWithdrawRec;
 
     address wallet; // the binded withdraw address
 
@@ -180,11 +190,37 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable {
      *        _fee is the amount of the transferring costs
      *        —tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawToken(address _token, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
         require(_to != address(0));
         require(_token != address(0));
         require(_value > _fee);
         // require(_tokenReturn != address(0));
+
+        DRCWalletMgrParams params = DRCWalletMgrParams(_params);
+        require(_value <= params.singleWithdraw());
+
+        uint256 daysCount = _time.div(86400);
+        if (daysCount <= dayWithdrawRec.mul) {
+            dayWithdrawRec.count = dayWithdrawRec.count.add(1);
+            dayWithdrawRec.value = dayWithdrawRec.value.add(_value);
+            require(dayWithdrawRec.count <= params.dayWithdrawCount());
+            require(dayWithdrawRec.value <= params.dayWithdraw());
+        } else {
+            dayWithdrawRec.mul = daysCount;
+            dayWithdrawRec.count = 1;
+            dayWithdrawRec.value = _value;
+        }
+        
+        uint256 monthsCount = _time.div(86400 * 30);
+        if (monthsCount <= monthWithdrawRec.mul) {
+            monthWithdrawRec.count = monthWithdrawRec.count.add(1);
+            monthWithdrawRec.value = monthWithdrawRec.value.add(_value);
+            require(monthWithdrawRec.value <= params.monthWithdraw());
+        } else {            
+            monthWithdrawRec.mul = monthsCount;
+            monthWithdrawRec.count = 1;
+            monthWithdrawRec.value = _value;
+        }
 
         ERC20 tk = ERC20(_token);
         uint256 realAmount = _value.sub(_fee);
@@ -208,8 +244,8 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable {
      *        _fee is the amount of the transferring costs
      *        —tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawTokenToDefault(address _token, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
-        return withdrawToken(_token, _time, wallet, _value, _fee, _tokenReturn);
+    function withdrawTokenToDefault(address _token, address _params, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+        return withdrawToken(_token, _params, _time, wallet, _value, _fee, _tokenReturn);
     }
 
     /**
@@ -271,8 +307,9 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     mapping (address => bool) public frozenDeposits;
 
     ERC20 public tk;
-    address public tokenReturn;
-    uint256 public chargeFee;
+    DRCWalletMgrParams params;
+    // address public tokenReturn;
+    // uint256 public chargeFee;
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, uint256 _value);
@@ -282,21 +319,15 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 	 * @dev withdraw tokens, send tokens to target default wallet
      *
      * @param _token the token address that will be withdraw
+     * @param _walletParams the wallet management parameters
 	 */
-    function bindToken(address _token) onlyOwner public returns (bool) {
+    function bindToken(address _token, address _walletParams) onlyOwner public returns (bool) {
         require(_token != address(0));
+        require(_walletParams != address(0));
 
         tk = ERC20(_token);
+        params = DRCWalletMgrParams(_walletParams);
         return true;
-    }
-
-    function setTokenReturnAddress(address _tokenReturn) onlyOwner public {
-        require(_tokenReturn != address(0));
-        tokenReturn = _tokenReturn;
-    }
-
-    function setChargeFee(uint256 _fee) onlyOwner public {
-        chargeFee = _fee;
     }
 
     function createDepositContract(address _wallet) onlyOwner public returns (address) {
@@ -328,21 +359,6 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         // depositRepos[_deposit].balance = _balance;
 
         return (_balance, frozenAmount);
-    }
-
-    function getDepositBalance(address _deposit) onlyOwner public view returns (uint256) {
-        require(_deposit != address(0));
-        uint256 _balance = tk.balanceOf(_deposit);
-
-        // depositRepos[_deposit].balance = _balance;
-        return _balance;
-    }
-
-    function getDepositFrozen(address _deposit) onlyOwner public view returns (uint256) {
-        require(_deposit != address(0));
-        uint256 frozenAmount = depositRepos[_deposit].frozen;
-
-        return frozenAmount;
     }
 
     function getDepositWithdrawCount(address _deposit) onlyOwner public view returns (uint) {
@@ -404,7 +420,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         require(_value <= _balance.sub(frozenAmount));
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-        return (deposWithdr.withdrawTokenToDefault(address(tk), _time, _value, chargeFee, tokenReturn));
+        return (deposWithdr.withdrawTokenToDefault(address(tk), address(params), _time, _value, params.chargeFee(), params.chargeFeePool()));
     }
 
     function checkWithdrawAddress(address _deposit, bytes32 _name, address _to) public view returns (bool, bool) {
@@ -466,7 +482,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         }
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
-        return (deposWithdr.withdrawToken(address(tk), _time, _to, _value, chargeFee, tokenReturn));        
+        return (deposWithdr.withdrawToken(address(tk), address(params), _time, _to, _value, params.chargeFee(), params.chargeFeePool()));        
     }
 
 }

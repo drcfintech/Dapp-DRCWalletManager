@@ -115,4 +115,28 @@
     //     }
 
     //     return (deposWithdr.withdrawToken(tk, _time, _to, _value, chargeFee, tokenReturn));
+    // }    
+
+    // function getDepositBalance(address _deposit) onlyOwner public view returns (uint256) {
+    //     require(_deposit != address(0));
+    //     uint256 _balance = tk.balanceOf(_deposit);
+
+    //     // depositRepos[_deposit].balance = _balance;
+    //     return _balance;
+    // }
+
+    // function getDepositFrozen(address _deposit) onlyOwner public view returns (uint256) {
+    //     require(_deposit != address(0));
+    //     uint256 frozenAmount = depositRepos[_deposit].frozen;
+
+    //     return frozenAmount;
+    // }
+
+    // function setTokenReturnAddress(address _tokenReturn) onlyOwner public {
+    //     require(_tokenReturn != address(0));
+    //     tokenReturn = _tokenReturn;
+    // }
+
+    // function setChargeFee(uint256 _fee) onlyOwner public {
+    //     chargeFee = _fee;
     // }

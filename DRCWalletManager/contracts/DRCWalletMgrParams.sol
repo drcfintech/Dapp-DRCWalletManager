@@ -9,6 +9,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
     uint256 public singleWithdraw;
     uint256 public dayWithdraw;
     uint256 public monthWithdraw;
+    uint256 public dayWithdrawCount;
 
     uint256 public chargeFee;
     address public chargeFeePool;
@@ -23,6 +24,12 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         require(!init);
 
         dayWithdraw = _value;
+    }
+
+    function initialDayWithdrawCount(uint256 _count) onlyOwner public {
+        require(!init);
+
+        dayWithdrawCount = _count;
     }
 
     function initialMonthWithdraw(uint256 _value) onlyOwner public {
@@ -49,6 +56,10 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
 
     function setDayWithdraw(uint256 _value) onlyCongress public {
         dayWithdraw = _value;
+    }
+
+    function setDayWithdrawCount(uint256 _count) onlyCongress public {
+        dayWithdrawCount = _count;
     }
 
     function setMonthWithdraw(uint256 _value) onlyCongress public {
