@@ -939,9 +939,9 @@ app.post("/withdraw", function (req, res) {　
     console.log('/withdraw info: ', qs.hash);
     qs = JSON.parse(qs.hash);
   }　
-  console.log('/withdraw from', qs.withdrawAddress);
-  console.log('/withdraw from', qs.depositAddress);
-  console.log('/withdraw value', qs.value);
+  console.log('/withdraw to ', qs.withdrawAddress);
+  console.log('/withdraw from ', qs.depositAddress);
+  console.log('/withdraw value ', qs.value);
   // 查询方法
   result = Actions.withdraw({
     data: qs,
