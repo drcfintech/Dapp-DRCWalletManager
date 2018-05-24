@@ -816,6 +816,7 @@ var Actions = {
             status = web3.utils.hexToNumber(web3.utils.toHex(result.status));
             console.log("status: ", status);
             if (!status) {
+              console.log(dataObject);
               dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
               // log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
 
