@@ -179,7 +179,9 @@ const sendTransaction = (rawTx) => {
     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
     .on('receipt', (receipt) => {
       console.log(receipt);
-      resolve(receipt);
+      let res = receipt;
+      res.gasPrice = rawTx.gasPrice;
+      resolve(res);
     })
     .on('confirmation', (confirmationNumber, receipt) => {
     })
@@ -274,7 +276,7 @@ var Actions = {
           returnObject = {from: contractAT};
           returnObject.txHash = result.transactionHash;
           returnObject.gasUsed = result.gasUsed;
-          returnObject.gasPrice = gasPrice;
+          returnObject.gasPrice = result.gasPrice;
           console.log(returnObject);
   
           logObject = result.logs[0];
@@ -345,12 +347,12 @@ var Actions = {
         console.log(encodeData);
 
         // 上链结果响应到请求方
-        const returnResult = (result, returnObject) => {
+        const returnResult = (result, returnObject, dataObject) => {
           // 新return对象，作为http请求的返回值
           returnObject = responceData.createDepositAddrSuccess;
           returnObject.txHash = result.transactionHash;
           returnObject.gasUsed = result.gasUsed;
-          returnObject.gasPrice = gasPrice;
+          returnObject.gasPrice = result.gasPrice;
 
           logObject = result.logs[0];
           console.log(logObject);
@@ -364,7 +366,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
   
-        TxExecution(encodeData, returnResult);       
+        TxExecution(encodeData, returnResult, dataObject);       
       }
     });
 
@@ -823,10 +825,10 @@ var Actions = {
             returnObject.txHash = result.transactionHash;
             returnObject.blockNumber = result.blockNumber;
             returnObject.gasUsed = result.gasUsed;
-            returnObject.gasPrice = gasPrice;
+            returnObject.gasPrice = result.gasPrice;
 
             logObject = result.logs[0];
-            console.log(logObject)
+            console.log(logObject);
 
             console.log(returnObject);
           
