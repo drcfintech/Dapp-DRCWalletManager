@@ -364,7 +364,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
   
-        TxExecution(encodeData, returnResult, dataObject);       
+        TxExecution(encodeData, returnResult);       
       }
     });
 
