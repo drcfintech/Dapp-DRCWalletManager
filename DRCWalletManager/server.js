@@ -835,6 +835,7 @@ var Actions = {
           
             // returnObject.depositAddr = web3.utils.numberToHex(web3.utils.hexToNumberString(logObject.data));
             // 返回success 附带message
+            console.log(dataObject);
             dataObject.res.end(JSON.stringify(returnObject));
             // 重置
             returnObject = {};
