@@ -263,6 +263,9 @@ var Actions = {
     .then(result => {
       bindTk = web3.utils.toHex(result);
       console.log(bindTk);
+      var realValue = web3.utils.toHex(10000 * 1e18); 
+      console.log("real withdraw value is ", realValue);
+      web3.utils.toBN(realValue);
 
       if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
@@ -731,7 +734,7 @@ var Actions = {
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
           let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
           console.log(withdrawAddrNameBytes);
-          var realValue = (requestObject.value * 1e18).toLocaleString();
+          var realValue = web3.utils.toHex(requestObject.value * 1e18);
           console.log("real withdraw value is ", realValue);
           let encodeData_params = web3.eth.abi.encodeParameters(
             ['address', 'uint256', 'bytes32', 'address','uint256','bool'], 
