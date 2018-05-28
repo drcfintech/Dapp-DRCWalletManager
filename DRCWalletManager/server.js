@@ -221,7 +221,6 @@ let TxExecution = function(encodeData, resultCallback, dataObject) {
         return sendTransaction(rwaTx);
       })
       .then((result) => {
-        console.log("return object is ", returnObject);
         console.log("data object is ", dataObject);
 
         if (dataObject.res) {
@@ -826,6 +825,7 @@ var Actions = {
               return;
             }
             
+            returnObject = responceData.withdrawSuccess;
             returnObject.txHash = result.transactionHash;
             returnObject.blockNumber = result.blockNumber;
             returnObject.gasUsed = result.gasUsed;
@@ -878,8 +878,9 @@ var Actions = {
           //   });
           // });
 
-          let processData = dataObject;
-          TxExecution(encodeData, processResult, processData);
+          console.log("data Object outside is ", dataObject);
+
+          TxExecution(encodeData, processResult, dataObject);
         }
       });
     });
