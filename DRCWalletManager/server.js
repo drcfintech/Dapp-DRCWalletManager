@@ -265,7 +265,7 @@ var Actions = {
       console.log(bindTk);
       var realValue = web3.utils.toHex(1e18); 
       console.log("real withdraw value is ", realValue);
-      web3.utils.toBN(realValue).mul(10000);
+      web3.utils.toBN(realValue).mul(web3.utils.toBN(10000)).toString();
 
       if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
