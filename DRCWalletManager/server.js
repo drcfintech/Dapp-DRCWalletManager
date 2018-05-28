@@ -731,7 +731,7 @@ var Actions = {
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
           let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
           console.log(withdrawAddrNameBytes);
-          var realValue = web3.utils.toBN(requestObject.value).mul(1e18);
+          var realValue = (requestObject.value * 1e18).toLocaleString();
           console.log("real withdraw value is ", realValue);
           let encodeData_params = web3.eth.abi.encodeParameters(
             ['address', 'uint256', 'bytes32', 'address','uint256','bool'], 
