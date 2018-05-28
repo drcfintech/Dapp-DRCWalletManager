@@ -60,7 +60,6 @@ let DRCWalletMgrParamsContract;
 
 const GAS_LIMIT = 6700000; // default gas limit
 const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
-const DECIMAL = web3.utils.toHex(1e18); 
 
 
 // Add headers
@@ -731,7 +730,8 @@ var Actions = {
           console.log(withdrawAddrName);
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
           let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
-          console.log(withdrawAddrNameBytes);
+          console.log(withdrawAddrNameBytes); 
+          const DECIMAL = web3.utils.toHex(1e18); 
           var realValue = web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
           console.log("real withdraw value is ", realValue);
           let encodeData_params = web3.eth.abi.encodeParameters(
