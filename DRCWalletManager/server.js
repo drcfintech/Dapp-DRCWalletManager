@@ -195,52 +195,55 @@ const sendTransaction = (rawTx) => {
   });
 };
 
-let TxExecution = function(encodeData, resultCallback, dataObject = {}) {   
+let TxExecution = function(encodeData, resultCallback, dataObject) {   
 
-      // 上链结果响应到请求方
-      // const returnResult = (result) => {
-      //   resultCallback(result);        
-      // }
+  // 上链结果响应到请求方
+  // const returnResult = (result) => {
+  //   resultCallback(result);        
+  // }
 
-      getBalance((dataObject) => {
-        let returnObject = {};
-        Promise.all([getNonce(), getGasPrice()])
-          .then(values => {
-            let rawTx = {
-              nonce: values[0],
-              to: contractAT,
-              gasPrice: values[1],
-              gasLimit: web3.utils.toHex(GAS_LIMIT),
-              data: encodeData
-            };
+  getBalance((dataObject) => {
+    let returnObject = {};
+    Promise.all([getNonce(), getGasPrice()])
+      .then(values => {
+        let rawTx = {
+          nonce: values[0],
+          to: contractAT,
+          gasPrice: values[1],
+          gasLimit: web3.utils.toHex(GAS_LIMIT),
+          data: encodeData
+        };
  
-            gasPrice = web3.utils.fromWei(values[1], "gwei");
-            return rawTx;
-          })
-          .then((rwaTx) => {
-            return sendTransaction(rwaTx);
-          })
-          .then((result) => {
-            if (dataObject == {}) {
-              resultCallback(result, returnObject);
-            } else {
-              resultCallback(result, returnObject, dataObject);
-            }
-          })
-          .catch(e => {
-            if (e) {
-              console.log('evm error', e);
-              if(dataObject != {}) {
-                dataObject.res.end(JSON.stringify(responceData.transactionError));
-              }
-              // 重置
-              returnObject = {};
-              // 保存log
-              // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
-              return;
-            }
-          });
+        gasPrice = web3.utils.fromWei(values[1], "gwei");
+        return rawTx;
+      })
+      .then((rwaTx) => {
+        return sendTransaction(rwaTx);
+      })
+      .then((result) => {
+        console.log("return object is ", returnObject);
+        console.log("data object is ", dataObject);
+
+        if (dataObject.res) {
+          resultCallback(result, returnObject, dataObject);
+        } else {
+          resultCallback(result, returnObject);
+        }
+      })
+      .catch(e => {
+        if (e) {
+          console.log('evm error', e);
+          if(dataObject != {}) {
+            dataObject.res.end(JSON.stringify(responceData.transactionError));
+          }
+          // 重置
+          returnObject = {};
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+          return;
+        }
       });
+  });
 };
 
 var Actions = {
@@ -288,7 +291,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         };
   
-        TxExecution(encodeData, processResult);
+        TxExecution(encodeData, processResult, {});
       }
     });    
   },
@@ -875,7 +878,8 @@ var Actions = {
           //   });
           // });
 
-          TxExecution(encodeData, processResult, dataObject);
+          let processData = dataObject;
+          TxExecution(encodeData, processResult, processData);
         }
       });
     });
