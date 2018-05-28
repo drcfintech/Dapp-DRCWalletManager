@@ -122,7 +122,7 @@ const getBalance = (callback, dataObject = {}) => {
     console.log('balance =>', balance);
     if (balance && web3.utils.fromWei(balance, "ether") < 0.001) {
       // 返回failed 附带message
-      if (dataObject != {}) {
+      if (dataObject.res) {
         dataObject.res.end(JSON.stringify(responceData.lowBalance));
       }
       // 保存log
@@ -245,7 +245,7 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
       });
   };
 
-  getBalance(callback(dataObject));
+  getBalance(callback, dataObject);
 };
 
 var Actions = {
