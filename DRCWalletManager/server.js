@@ -60,6 +60,7 @@ let DRCWalletMgrParamsContract;
 
 const GAS_LIMIT = 6700000; // default gas limit
 const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
+const DECIMAL = web3.utils.toHex(1e18); 
 
 
 // Add headers
@@ -263,9 +264,6 @@ var Actions = {
     .then(result => {
       bindTk = web3.utils.toHex(result);
       console.log(bindTk);
-      var realValue = web3.utils.toHex(1e18); 
-      console.log("real withdraw value is ", realValue);
-      web3.utils.toBN(realValue).mul(web3.utils.toBN(10000)).toString();
 
       if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
@@ -734,7 +732,7 @@ var Actions = {
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
           let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
           console.log(withdrawAddrNameBytes);
-          var realValue = web3.utils.toHex(requestObject.value * 1e18);
+          var realValue = web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
           console.log("real withdraw value is ", realValue);
           let encodeData_params = web3.eth.abi.encodeParameters(
             ['address', 'uint256', 'bytes32', 'address','uint256','bool'], 
