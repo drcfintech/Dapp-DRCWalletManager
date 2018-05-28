@@ -59,6 +59,7 @@ const DRCWalletMgrParams_contractABI = DRCWalletMgrParams_artifacts.abi;
 let DRCWalletMgrParamsContract;
 
 const GAS_LIMIT = 6700000; // default gas limit
+const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
 
 
 // Add headers
@@ -195,14 +196,14 @@ const sendTransaction = (rawTx) => {
   });
 };
 
-let TxExecution = function(encodeData, resultCallback, dataObject) {   
+let TxExecution = function(encodeData, resultCallback, dataObject = {}) {   
 
   // 上链结果响应到请求方
   // const returnResult = (result) => {
   //   resultCallback(result);        
   // }
 
-  getBalance((dataObject) => {
+  let callback = (dataObject) => {
     let returnObject = {};
     Promise.all([getNonce(), getGasPrice()])
       .then(values => {
@@ -242,7 +243,9 @@ let TxExecution = function(encodeData, resultCallback, dataObject) {
           return;
         }
       });
-  });
+  };
+
+  getBalance(callback(dataObject));
 };
 
 var Actions = {
@@ -261,7 +264,7 @@ var Actions = {
       bindTk = web3.utils.toHex(result);
       console.log(bindTk);
 
-      if (bindTk == "0x0000000000000000000000000000000000000000") {
+      if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
         console.log(DRCToken_contractAT);
         let encodeData_param = web3.eth.abi.encodeParameters(
@@ -290,7 +293,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         };
   
-        TxExecution(encodeData, processResult, {});
+        TxExecution(encodeData, processResult);
       }
     });    
   },
