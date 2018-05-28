@@ -670,6 +670,7 @@ var Actions = {
     .then((withdrawAddrCount) => {
       let num = parseInt(withdrawAddrCount) + 1;
       console.log(requestObject.depositAddress);
+      console.log("data Object in withdrawAddrCount ", dataObject);
 
       let callData_param = web3.eth.abi.encodeParameter(
         'address', 
@@ -698,6 +699,8 @@ var Actions = {
       .then((depositInfo) => {
         console.log(' 充值地址余额查询结果   \n', depositInfo.balance);
         console.log(' 充值地址冻结查询结果   \n', depositInfo.frozen);
+
+        console.log("data Object in depositInfo ", dataObject);
 
         var ifCheck = false;
         // 返回值显示已经有该hash的记录  
