@@ -5,14 +5,21 @@ import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Destructible.sol';
 import './Autonomy.sol';
 
-contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
-    uint256 public singleWithdraw;
-    uint256 public dayWithdraw;
-    uint256 public monthWithdraw;
-    uint256 public dayWithdrawCount;
 
-    uint256 public chargeFee;
-    address public chargeFeePool;
+/**
+ * contract that define the wallet management parameters on DRC platform
+ * only owner could initialize the parameters, but the congress contract 
+ * could set the parameters in the future
+ */
+contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
+    uint256 public singleWithdraw; // Max value of single withdraw
+    uint256 public dayWithdraw; // Max value of one day of withdraw
+    uint256 public monthWithdraw; // Max value of one month of withdraw
+    uint256 public dayWithdrawCount; // Max number of withdraw counting
+
+    uint256 public chargeFee; // the charge fee for withdraw
+    address public chargeFeePool; // the address that will get the returned charge fees.
+
 
     function initialSingleWithdraw(uint256 _value) onlyOwner public {
         require(!init);
