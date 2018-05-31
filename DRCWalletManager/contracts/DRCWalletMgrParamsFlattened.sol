@@ -29,7 +29,7 @@ contract Ownable {
    */
   function transferOwnership(address newOwner) public onlyOwner {
     require(newOwner != address(0));
-    OwnershipTransferred(owner, newOwner);
+    emit OwnershipTransferred(owner, newOwner);
     owner = newOwner;
   }
 
@@ -107,7 +107,7 @@ contract Claimable is Ownable {
    * @dev Allows the pendingOwner address to finalize the transfer.
    */
   function claimOwnership() onlyPendingOwner public {
-    OwnershipTransferred(owner, pendingOwner);
+    emit OwnershipTransferred(owner, pendingOwner);
     owner = pendingOwner;
     pendingOwner = address(0);
   }
