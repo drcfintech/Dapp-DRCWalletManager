@@ -2,7 +2,6 @@ pragma solidity ^0.4.23;
 
 
 import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
-import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Destructible.sol';
 import 'zeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
@@ -125,7 +124,7 @@ contract withdrawable is Ownable {
 /**
  * contract that can deposit and withdraw tokens
  */
-contract DepositWithdraw is Claimable, Pausable, withdrawable {
+contract DepositWithdraw is Claimable, withdrawable {
     using SafeMath for uint256;
 
     /**
@@ -223,9 +222,10 @@ contract DepositWithdraw is Claimable, Pausable, withdrawable {
         // require(_tokenReturn != address(0));
 
         DRCWalletMgrParams params = DRCWalletMgrParams(_params);
-        require(_value <= params.singleWithdraw());
+        require(_value <= params.singleWithdrawMax());
+        require(_value >= params.singleWithdrawMin());
 
-        uint256 daysCount = _time.div(86400);
+        uint256 daysCount = _time.div(86400); // one day of seconds
         if (daysCount <= dayWithdrawRec.mul) {
             dayWithdrawRec.count = dayWithdrawRec.count.add(1);
             dayWithdrawRec.value = dayWithdrawRec.value.add(_value);
