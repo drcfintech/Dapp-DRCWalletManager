@@ -577,7 +577,7 @@ var Actions = {
           web3.eth.getTransaction(txHash, (error, result) => {
             if (error) reject(error);
 
-            if (result) console.log('gasPrice  ', result.gasPrice + 'gwei');
+            if (result) console.log('gasPrice  ', result.gasPrice);
             resolve(result.gasPrice);
           });
         });
