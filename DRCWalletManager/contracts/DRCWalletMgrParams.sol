@@ -12,7 +12,8 @@ import './Autonomy.sol';
  * could set the parameters in the future
  */
 contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
-    uint256 public singleWithdraw; // Max value of single withdraw
+    uint256 public singleWithdrawMin; // min value of single withdraw
+    uint256 public singleWithdrawMax; // Max value of single withdraw
     uint256 public dayWithdraw; // Max value of one day of withdraw
     uint256 public monthWithdraw; // Max value of one month of withdraw
     uint256 public dayWithdrawCount; // Max number of withdraw counting
@@ -21,10 +22,16 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
     address public chargeFeePool; // the address that will get the returned charge fees.
 
 
-    function initialSingleWithdraw(uint256 _value) onlyOwner public {
+    function initialSingleWithdrawMax(uint256 _value) onlyOwner public {
         require(!init);
 
-        singleWithdraw = _value;
+        singleWithdrawMax = _value;
+    }
+
+    function initialSingleWithdrawMin(uint256 _value) onlyOwner public {
+        require(!init);
+
+        singleWithdrawMin = _value;
     }
 
     function initialDayWithdraw(uint256 _value) onlyOwner public {

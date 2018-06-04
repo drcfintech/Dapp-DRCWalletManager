@@ -261,7 +261,7 @@ var Actions = {
     // bind token address
     DRCWalletMgrContract.methods.tk().call()
     .then(result => {
-      bindTk = web3.utils.toHex(result);
+      var bindTk = web3.utils.toHex(result);
       console.log(bindTk);
 
       if (bindTk == ADDR_ZERO) {
@@ -577,7 +577,7 @@ var Actions = {
           web3.eth.getTransaction(txHash, (error, result) => {
             if (error) reject(error);
 
-            if (result) console.log('gasPrice  ', result.gasPrice + 'gwei');
+            if (result) console.log('gasPrice  ', result.gasPrice);
             resolve(result.gasPrice);
           });
         });
@@ -985,7 +985,7 @@ app.post("/withdraw", function (req, res) {　
 
 
 app.listen({
-  host: serverConfig.serverHost,
+  // host: serverConfig.serverHost,
   port: serverConfig.serverPort
 }, function () {
   // 初始化web3连接
