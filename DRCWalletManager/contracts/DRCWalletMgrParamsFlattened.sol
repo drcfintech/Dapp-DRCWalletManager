@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.13;
 
 contract Ownable {
   address public owner;
@@ -190,7 +190,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         chargeFee = _value;
     }
 
-    function setChargeFeePool(address _pool) onlyOwner public {
+    function setChargeFeePool(address _pool) onlyCongress public {
         chargeFeePool = _pool;
     }
 }
