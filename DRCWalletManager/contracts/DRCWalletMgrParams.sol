@@ -88,7 +88,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         chargeFee = _value;
     }
 
-    function setChargeFeePool(address _pool) onlyOwner public {
+    function setChargeFeePool(address _pool) onlyCongress public {
         chargeFeePool = _pool;
     }
 }
