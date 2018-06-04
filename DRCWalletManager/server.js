@@ -580,6 +580,10 @@ var Actions = {
             if (result) console.log('gasPrice  ', result.gasPrice);
             resolve(result.gasPrice);
           });
+        })
+        .catch(err => {
+          console.log("catch error when getGasPrice");
+          return new Promise.reject(err);
         });
       }    
 
@@ -592,6 +596,10 @@ var Actions = {
             if (result) console.log('gasUsed  ', result.gasUsed);
             resolve(result.gasUsed);
           });
+        })
+        .catch(err => {
+          console.log("catch error when getGasUsed");
+          return new Promise.reject(err);
         });
       }
       
@@ -603,6 +611,10 @@ var Actions = {
             if (res) console.log('timestamp  ', res.timestamp);
             resolve(res.timestamp);
           });
+        })
+        .catch(err => {
+          console.log("catch error when getTxTimestamp");
+          return new Promise.reject(err);
         });
       }
 
