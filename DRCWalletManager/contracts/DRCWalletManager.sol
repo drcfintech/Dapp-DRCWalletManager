@@ -193,7 +193,7 @@ contract DepositWithdraw is Claimable, withdrawable {
      * @param _token address the ERC20 token address
      * @param _extraData bytes the extra data for the record
      */
-    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) onlyOwner whenNotPaused public {
+    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) onlyOwner public {
         require(_token != address(0));
         require(_from != address(0));
         
@@ -215,7 +215,7 @@ contract DepositWithdraw is Claimable, withdrawable {
      *        _fee is the amount of the transferring costs
      *        _tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
         require(_to != address(0));
         require(_token != address(0));
         require(_value > _fee);
@@ -271,7 +271,7 @@ contract DepositWithdraw is Claimable, withdrawable {
      *        _fee is the amount of the transferring costs
      *        —tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawTokenToDefault(address _token, address _params, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner whenNotPaused returns (bool) {
+    function withdrawTokenToDefault(address _token, address _params, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
         return withdrawToken(_token, _params, _time, wallet, _value, _fee, _tokenReturn);
     }
 
