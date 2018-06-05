@@ -58,7 +58,7 @@ const DRCWalletMgrParams_contractABI = DRCWalletMgrParams_artifacts.abi;
 // 初始化合约实例
 let DRCWalletMgrParamsContract;
 
-const GAS_LIMIT = 6700000; // default gas limit
+const GAS_LIMIT = 4700000; // default gas limit
 const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
 
 
