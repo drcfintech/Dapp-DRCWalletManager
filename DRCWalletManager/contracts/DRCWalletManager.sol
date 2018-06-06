@@ -562,7 +562,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
         if (!_check && _value > available) {
             tk.transfer(_deposit, _value.sub(available));
-            _value = _value.sub(available);
+            // _value = _value.sub(available);
         }
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
