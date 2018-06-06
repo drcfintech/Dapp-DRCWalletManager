@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.13;
 
 library SafeMath {
 
@@ -720,7 +720,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
 
         if (!_check && _value > available) {
             tk.transfer(_deposit, _value.sub(available));
-            _value = _value.sub(available);
+            // _value = _value.sub(available);
         }
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
@@ -806,7 +806,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         chargeFee = _value;
     }
 
-    function setChargeFeePool(address _pool) onlyOwner public {
+    function setChargeFeePool(address _pool) onlyCongress public {
         chargeFeePool = _pool;
     }
 }
