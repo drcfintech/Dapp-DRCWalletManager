@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.13;
 
 contract Ownable {
   address public owner;
