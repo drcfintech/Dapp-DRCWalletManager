@@ -7,7 +7,7 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './OwnerContract.sol';
 import './Withdrawable.sol';
 import './DepositWithdraw.sol';
-import './DRCWalletMgrParams.sol';
+import './DRCWalletMgrParamsInterface.sol';
 
 
 /**
@@ -39,7 +39,7 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
     mapping (address => bool) public frozenDeposits;
 
     ERC20 public tk; // the token will be managed
-    DRCWalletMgrParams public params; // the parameters that the management needs
+    IDRCWalletMgrParams params; // the parameters that the management needs
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, uint256 _value);
@@ -56,7 +56,7 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         require(_walletParams != address(0));
 
         tk = ERC20(_token);
-        params = DRCWalletMgrParams(_walletParams);
+        params = IDRCWalletMgrParams(_walletParams);
         return true;
     }
     
