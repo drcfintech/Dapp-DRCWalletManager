@@ -7,7 +7,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './OwnerContract.sol';
 import './Withdrawable.sol';
-import './DRCWalletMgrParams.sol';
+import './DRCWalletMgrParamsInterface.sol';
 
 
 /**
@@ -119,7 +119,7 @@ contract DepositWithdraw is Claimable, Withdrawable {
      * @param _time the timstamp of the withdraw time
      */
     function checkWithdrawAmount(address _params, uint256 _value, uint256 _time) public returns (bool) {
-        DRCWalletMgrParams params = DRCWalletMgrParams(_params);
+        IDRCWalletMgrParams params = IDRCWalletMgrParams(_params);
         require(_value <= params.singleWithdrawMax());
         require(_value >= params.singleWithdrawMin());
 
