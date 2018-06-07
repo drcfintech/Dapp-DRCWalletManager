@@ -264,7 +264,7 @@ var Actions = {
       var bindTk = web3.utils.toHex(result);
       console.log(bindTk);
 
-//      if (bindTk == ADDR_ZERO) {
+     if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
         console.log(DRCToken_contractAT);
         let encodeData_param = web3.eth.abi.encodeParameters(
@@ -294,7 +294,7 @@ var Actions = {
         };
   
         TxExecution(encodeData, processResult);
-//      }
+     }
     });    
   },
 
