@@ -1,11 +1,6 @@
 pragma solidity ^0.4.23;
 
 
-import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
-import 'zeppelin-solidity/contracts/lifecycle/Destructible.sol';
-import './Autonomy.sol';
-
-
 /**
  * contract that define the wallet management parameters on DRC platform
  * only owner could initialize the parameters, but the congress contract 
