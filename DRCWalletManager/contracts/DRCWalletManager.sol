@@ -2,7 +2,6 @@ pragma solidity ^0.4.23;
 
 
 import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
-import 'zeppelin-solidity/contracts/lifecycle/Destructible.sol';
 import 'zeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
@@ -204,23 +203,32 @@ contract DepositWithdraw is Claimable, withdrawable {
         emit ReceiveDeposit(_from, _value, _token, _extraData);
     }
 
-    /**
-	 * @dev withdraw tokens, send tokens to target
-     *
-     * @param _token the token address that will be withdraw
-     * @param _params the limitation parameters for withdraw
-     * @param _time the timstamp of the withdraw time
-	 * @param _to is where the tokens will be sent to
-	 *        _value is the number of the token
-     *        _fee is the amount of the transferring costs
-     *        _tokenReturn is the address that return back the tokens of the _fee
-	 */
-    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
-        require(_to != address(0));
-        require(_token != address(0));
-        require(_value > _fee);
-        // require(_tokenReturn != address(0));
+    // function authorize(address _token, address _spender, uint256 _value) onlyOwner public returns (bool) {
+    //     ERC20 tk = ERC20(_token);
+    //     require(tk.approve(_spender, _value));
 
+    //     return true;
+    // }
+
+    /**
+     * @dev record withdraw into this contract
+     *
+     * @param _time the timstamp of the withdraw time
+     * @param _to is where the tokens will be sent to
+     * @param _value is the number of the token
+     */
+    function recordWithdraw(uint256 _time, address _to, uint256 _value) onlyOwner public {    
+        withdrRecs.push(TransferRecord(_time, _to, _value));
+    }
+
+    /**
+     * @dev check if withdraw amount is not valid
+     *
+     * @param _params the limitation parameters for withdraw
+     * @param _value is the number of the token
+     * @param _time the timstamp of the withdraw time
+     */
+    function checkWithdrawAmount(address _params, uint256 _value, uint256 _time) public returns (bool) {
         DRCWalletMgrParams params = DRCWalletMgrParams(_params);
         require(_value <= params.singleWithdrawMax());
         require(_value >= params.singleWithdrawMin());
@@ -248,6 +256,28 @@ contract DepositWithdraw is Claimable, withdrawable {
             monthWithdrawRec.value = _value;
         }
 
+        return true;
+    }
+
+    /**
+	 * @dev withdraw tokens, send tokens to target
+     *
+     * @param _token the token address that will be withdraw
+     * @param _params the limitation parameters for withdraw
+     * @param _time the timstamp of the withdraw time
+	 * @param _to is where the tokens will be sent to
+	 *        _value is the number of the token
+     *        _fee is the amount of the transferring costs
+     *        _tokenReturn is the address that return back the tokens of the _fee
+	 */
+    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
+        require(_to != address(0));
+        require(_token != address(0));
+        require(_value > _fee);
+        // require(_tokenReturn != address(0));
+
+        require(checkWithdrawAmount(_params, _value, _time));
+
         ERC20 tk = ERC20(_token);
         uint256 realAmount = _value.sub(_fee);
         require(tk.transfer(_to, realAmount));
@@ -255,7 +285,7 @@ contract DepositWithdraw is Claimable, withdrawable {
             require(tk.transfer(_tokenReturn, _fee));
         }
 
-        withdrRecs.push(TransferRecord(_time, _to, realAmount));
+        recordWithdraw(_time, _to, realAmount);
         emit WithdrawToken(_token, _to, realAmount);
 
         return true;
@@ -317,7 +347,7 @@ contract DepositWithdraw is Claimable, withdrawable {
 /**
  * contract that manage the wallet operations on DRC platform
  */
-contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDestructible {
+contract DRCWalletManager is OwnerContract, withdrawable, TokenDestructible {
     using SafeMath for uint256;
     
     /**
@@ -343,7 +373,7 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
     mapping (address => bool) public frozenDeposits;
 
     ERC20 public tk; // the token will be managed
-    DRCWalletMgrParams params; // the parameters that the management needs
+    DRCWalletMgrParams public params; // the parameters that the management needs
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, uint256 _value);
@@ -379,6 +409,8 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
         // depositRepos[_deposit].balance = 0;
         depositRepos[_deposit].frozen = 0;
+
+        // deposWithdr.authorize(address(tk), this, 1e27); // give authorization to owner contract
 
         emit CreateDepositAddress(_wallet, address(deposWithdr));
         return deposWithdr;
@@ -516,9 +548,34 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
             if (_name == wallet.name) {
                 return(true, (_to == wallet.walletAddr));
             }
+            if (_to == wallet.walletAddr) {
+                return(true, true);
+            }
         }
 
         return (false, true);
+    }
+    
+    /**
+	 * @dev withdraw tokens from this contract, send tokens to target withdraw wallet
+     *
+     * @param _deposWithdr the deposit contract that will record withdrawing
+     * @param _time the timestamp occur the withdraw record
+     * @param _to the address the token will be transfer to 
+     * @param _value the token transferred value
+	 */
+    function withdrawFromThis(DepositWithdraw _deposWithdr, uint256 _time, address _to, uint256 _value) private returns (bool) {
+        uint256 fee = params.chargeFee();
+        uint256 realAmount = _value.sub(fee);
+        address tokenReturn = params.chargeFeePool();
+        if (tokenReturn != address(0) && fee > 0) {
+            require(tk.transfer(tokenReturn, fee));
+        }
+
+        require (tk.transfer(_to, realAmount));
+        _deposWithdr.recordWithdraw(_time, _to, realAmount);
+
+        return true;
     }
 
     /**
@@ -560,12 +617,19 @@ contract DRCWalletManager is OwnerContract, withdrawable, Destructible, TokenDes
             return false;
         }
 
-        if (!_check && _value > available) {
-            tk.transfer(_deposit, _value.sub(available));
-            // _value = _value.sub(available);
-        }
-
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
+        /**
+         * if deposit address doesn't have enough tokens to withdraw, 
+         * then withdraw from this contract. Record in deposit contract.
+         */
+        if (_value > available) {
+            require(deposWithdr.checkWithdrawAmount(address(params), _value, _time));
+            require(deposWithdr.withdrawToken(address(tk), this, available));
+            
+            require(withdrawFromThis(deposWithdr, _time, _to, _value));
+            return true;
+        }
+        
         return (deposWithdr.withdrawToken(address(tk), address(params), _time, _to, _value, params.chargeFee(), params.chargeFeePool()));        
     }
 
