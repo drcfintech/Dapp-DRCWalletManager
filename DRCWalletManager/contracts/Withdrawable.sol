@@ -7,7 +7,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 /**
  * contract that can withdraw ether or tokens
  */
-contract withdrawable is Ownable {
+contract Withdrawable is Ownable {
     event ReceiveEther(address _from, uint256 _value);
     event WithdrawEther(address _to, uint256 _value);
     event WithdrawToken(address _token, address _to, uint256 _value);
