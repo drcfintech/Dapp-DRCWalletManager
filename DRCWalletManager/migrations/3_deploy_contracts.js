@@ -2,7 +2,7 @@ var DRCWalletMgrCon = artifacts.require("./DRCWalletManager.sol");
 const Web3 = require('web3');
 const Promise = require('bluebird');
 const walletConfig = require('../config/walletConfig.json');
-var web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io/" + walletConfig.infuraAPIkey));
+var web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/" + walletConfig.infuraAPIkey));
 
 const getGasPrice = () => {
   return new Promise((resolve, reject) => {
@@ -29,7 +29,7 @@ module.exports = function(deployer) {
   .then(values => {
     var realPrice = values[0];
     console.log("using gasPrice: ", realPrice);
-    deployer.deploy(DRCWalletMgrCon, {gas: '4700000', gasPrice: realPrice}).then(
+    deployer.deploy(DRCWalletMgrCon, {gas: '6700000', gasPrice: realPrice}).then(
       function(instance) {
         console.log(instance);
       }
