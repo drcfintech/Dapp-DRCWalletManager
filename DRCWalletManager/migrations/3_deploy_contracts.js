@@ -38,7 +38,7 @@ Promise.all([getGasPrice()])
   });
 
 module.exports = function(deployer) {
-  deployer.deploy(DRCWalletMgrCon, {gas: '6700000', gasPrice: web3.utils.fromWei(realPrice, 'gwei')}).then(
+  deployer.deploy(DRCWalletMgrCon, {gas: '6700000', gasPrice: web3.utils.fromWei('' + realPrice, 'gwei')}).then(
     function(instance) {
       console.log(instance);
     }
