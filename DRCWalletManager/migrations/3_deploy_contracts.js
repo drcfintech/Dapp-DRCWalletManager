@@ -24,23 +24,26 @@ const getGasPrice = () => {
   });
 };
 
-var realPrice;
-Promise.all([getGasPrice()])
+module.exports = function(deployer) {
+  var realPrice;
+  Promise.all([getGasPrice()])
   .then(values => {
     realPrice = values[0];
     console.log("using gasPrice: ", realPrice + 'gwei');
+    return realPrice;
   })
+  .then(realPrice => {
+    console.log("real gasPrice: ", realPrice + 'gwei');
+    deployer.deploy(DRCWalletMgrCon, {gas: '6700000', gasPrice: web3.utils.toWei(realPrice, 'gwei')}).then(
+      function(instance) {
+        console.log(instance);
+      }
+    );
+  })  
   .catch(e => {
     if (e) {
       console.log('evm error', e);
       return;
     }
   });
-
-module.exports = function(deployer) {
-  deployer.deploy(DRCWalletMgrCon, {gas: '6700000', gasPrice: web3.utils.toWei(realPrice, 'gwei')}).then(
-    function(instance) {
-      console.log(instance);
-    }
-  );
 };
