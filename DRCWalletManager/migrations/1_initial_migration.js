@@ -10,13 +10,13 @@ const getGasPrice = () => {
     web3.eth.getGasPrice((error, result) => {
       if (error) reject(error);
       
-      gasPrice = web3.utils.fromWei(result, "gwei");
+      var gasPrice = web3.utils.fromWei(result, "gwei");
       console.log('gasPrice  ', gasPrice + 'gwei');
-      if (gasPrice >= 3) result *= 1.25;
-      else if (gasPrice >= 2) result *= 1.5;
-      else result *= 2;
+      if (gasPrice >= 3) gasPrice *= 1.25;
+      else if (gasPrice >= 2) gasPrice *= 1.5;
+      else gasPrice *= 2;
 
-      resolve(web3.utils.toHex(result));
+      resolve(gasPrice);
     });
   })
   .catch(err => {
@@ -25,16 +25,11 @@ const getGasPrice = () => {
   });
 };
 
-module.exports = function(deployer) {
-  Promise.all([getGasPrice()])
+var realPrice;
+Promise.all([getGasPrice()])
   .then(values => {
-    var realPrice = values[0];
+    realPrice = values[0];
     console.log("using gasPrice: ", realPrice);
-    deployer.deploy(Migrations, {gas: '4700000', gasPrice: realPrice}).then(
-      function(instance) {
-        console.log(instance);
-      }
-    );
   })
   .catch(e => {
     if (e) {
@@ -42,4 +37,11 @@ module.exports = function(deployer) {
       return;
     }
   });
+
+module.exports = function(deployer) {  
+  deployer.deploy(Migrations, {gas: '4700000', gasPrice: realPrice}).then(
+    function(instance) {
+      console.log(instance);
+    }
+  );
 };
