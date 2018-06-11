@@ -312,7 +312,7 @@ var Actions = {
     }
 
     // 上链步骤：查询没有结果之后再上链
-    DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((error, result) => {
+    DRCWalletMgrContract.methods.walletDeposits(dataObject.data).call((error, result) => {
       if (error) {
         // 以太坊虚拟机的异常
         dataObject.res.end(JSON.stringify(responceData.evmError));
@@ -390,7 +390,7 @@ var Actions = {
       return;
     }
 
-    DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((err, result) => {
+    DRCWalletMgrContract.methods.wallletDeposits(dataObject.data).call((err, result) => {
       var resultValue = web3.utils.hexToNumberString(result);
       if (err || resultValue == "0") {
         console.log(err);
