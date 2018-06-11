@@ -39,7 +39,7 @@ Promise.all([getGasPrice()])
   });
 
 module.exports = function(deployer) {  
-  deployer.deploy(Migrations, {gas: '4700000', gasPrice: web3.utils.fromWei('' + realPrice, 'gwei')}).then(
+  deployer.deploy(Migrations, {gas: '4700000', gasPrice: web3.utils.toWei(realPrice, 'gwei')}).then(
     function(instance) {
       console.log(instance);
     }
