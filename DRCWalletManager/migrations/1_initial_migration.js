@@ -35,7 +35,7 @@ module.exports = function(deployer) {
   })
   .then(realPrice => {
     console.log("real gasPrice: ", realPrice + 'gwei');
-    deployer.deploy(Migrations, {gas: '6700000', gasPrice: web3.utils.toWei(realPrice, 'gwei')}).then(
+    deployer.deploy(Migrations, {gas: '6700000', gasPrice: web3.utils.toWei(realPrice.toString(), 'gwei')}).then(
       function(instance) {
         console.log(instance);
       }
