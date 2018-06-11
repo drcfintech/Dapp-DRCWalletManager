@@ -2,6 +2,7 @@ var Migrations = artifacts.require("./Migrations.sol");
 const Web3 = require('web3');
 const Promise = require('bluebird');
 const walletConfig = require('../config/walletConfig.json');
+
 var web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io/" + walletConfig.infuraAPIkey));
 
 const getGasPrice = () => {
