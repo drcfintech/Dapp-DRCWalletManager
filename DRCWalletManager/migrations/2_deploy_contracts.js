@@ -29,7 +29,7 @@ module.exports = function(deployer) {
   .then(values => {
     var realPrice = values[0];
     console.log("using gasPrice: ", realPrice);
-    deployer.deploy(DRCWalletMgrParamsCon, {gas: '4700000', gasPrice: realPrice}).then(
+    deployer.deploy(DRCWalletMgrParamsCon, {gas: '6700000', gasPrice: realPrice}).then(
       function(instance) {
         console.log(instance);
       }
