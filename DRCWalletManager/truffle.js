@@ -14,15 +14,24 @@ module.exports = {
       network_id: '*' // Match any network id
     },
     ropsten: {
-      provider: new HDWalletProvider(walletConfig.mnemonic, "https://ropsten.infura.io/" + infura_apikey),
+      provider: () => {
+        return new HDWalletProvider(walletConfig.mnemonic, 
+          "https://ropsten.infura.io/" + infura_apikey);
+      },
       network_id: 3
     },
     rinkeby: {
-      provider: new HDWalletProvider(walletConfig.mnemonic, "https://rinkeby.infura.io/" + infura_apikey),
+      provider: () => {
+        return new HDWalletProvider(walletConfig.mnemonic, 
+          "https://rinkeby.infura.io/" + infura_apikey);
+      },
       network_id: 4
     },
     mainnet: {
-      provider: new HDWalletProvider(walletConfig.mnemonic, "https://mainnet.infura.io/" + infura_apikey),
+      provider: () => {
+        return new HDWalletProvider(walletConfig.mnemonic, 
+          "https://mainnet.infura.io/" + infura_apikey);
+        },
       network_id: 1
     }
   }
