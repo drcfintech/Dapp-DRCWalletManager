@@ -31,7 +31,7 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(walletConfig.mnemonic, 
           "https://mainnet.infura.io/" + infura_apikey);
-        },
+      },
       network_id: 1
     }
   }
