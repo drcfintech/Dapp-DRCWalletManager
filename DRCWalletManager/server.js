@@ -177,7 +177,11 @@ const sendTransaction = (rawTx) => {
     tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
     let serializedTx = tx.serialize();
     // 签好的tx发送到链上
+    let txHash;
     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+    .on('transaction', (hash) => {
+      txHash = hash;
+    })
     .on('receipt', (receipt) => {
       console.log(receipt);
       let res = receipt;
@@ -187,6 +191,18 @@ const sendTransaction = (rawTx) => {
     .on('confirmation', (confirmationNumber, receipt) => {
     })
     .catch(err => {
+      if (err.includes('not mined within 50 blocks')) {
+        console.log("met error of not mined within 50 blocks...");
+        const handle = setInterval(() => {
+          web3.eth.getTransactionReceipt(txHash)
+          .then((res) => {
+            if(res != null && res.blockNumber > 0) {
+              clearInterval(handle);
+              ;
+            }
+          }); 
+        });
+      }
       reject(err);
     });
   })
