@@ -191,7 +191,8 @@ const sendTransaction = (rawTx) => {
     .on('confirmation', (confirmationNumber, receipt) => {
     })
     .catch(err => {
-      if (err.includes('not mined within 50 blocks')) {
+      console.log("catch an error after sendTransaction...");
+      if (err && err.includes('not mined within 50 blocks')) {
         console.log("met error of not mined within 50 blocks...");
         const handle = setInterval(() => {
           web3.eth.getTransactionReceipt(txHash)
