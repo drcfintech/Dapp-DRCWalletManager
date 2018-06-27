@@ -195,10 +195,12 @@ const sendTransaction = (rawTx) => {
         console.log("met error of not mined within 50 blocks...");
         const handle = setInterval(() => {
           web3.eth.getTransactionReceipt(txHash)
-          .then((res) => {
-            if(res != null && res.blockNumber > 0) {
+          .then((resp) => {
+            if(resp != null && resp.blockNumber > 0) {
               clearInterval(handle);
-              ;
+              let finalRes = resp;
+              finalRes.gasPrice = rawTx.gasPrice;
+              resolve(finalRes);
             }
           }); 
         });
