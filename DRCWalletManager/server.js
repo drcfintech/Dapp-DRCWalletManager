@@ -200,10 +200,15 @@ const sendTransaction = (rawTx) => {
               clearInterval(handle);
               let finalRes = resp;
               finalRes.gasPrice = rawTx.gasPrice;
-              resolve(finalRes);
+              return resolve(finalRes);
             }
           }); 
         });
+        
+        const TIME_OUT = 1800000; 
+        setTimeout(() => {
+          clearTimeout(handle);
+        }, TIME_OUT);
       }
       reject(err);
     });
