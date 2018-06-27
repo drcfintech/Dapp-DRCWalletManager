@@ -663,6 +663,7 @@ var Actions = {
 
     if (!web3.utils.isAddress(requestObject.withdrawAddress)) {
       // 返回failed 附带message
+      console.log("the withdraw address is invalid: ", requestObject.withdrawAddress);
       dataObject.res.end(JSON.stringify(responceData.addressError));
       // 保存log
       // log.saveLog(operation[2], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
