@@ -811,7 +811,7 @@ var Actions = {
           let realValue = (value) => {
             var temp = value.toFixed(18);
             // web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
-            return web3.utils.toBN(Math.imul(temp, 1e18).toString());
+            return web3.utils.toBN(Math.imul(temp, 1e18).toString('hex'));
           }
           console.log("real withdraw value is ", realValue(requestObject.value));
           let encodeData_params = web3.eth.abi.encodeParameters(
