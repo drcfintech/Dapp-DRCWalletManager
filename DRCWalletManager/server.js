@@ -809,9 +809,9 @@ var Actions = {
           console.log(withdrawAddrNameBytes);
           // const DECIMAL = web3.utils.toHex(1e18); 
           let realValue = (value) => {
-            var temp = value.toFixed(18);
-            // web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
-            return web3.utils.toBN(Math.round(Math.imul(temp, 1e18)));
+            var temp = value.toFixed(7);
+            // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(DECIMAL));
+            return web3.utils.toBN(Number.parseInt(temp * 1e7)).mul(web3.utils.toBN(1e11));
           }
           console.log("real withdraw value is ", realValue(requestObject.value));
           let encodeData_params = web3.eth.abi.encodeParameters(
