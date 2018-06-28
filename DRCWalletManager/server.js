@@ -187,7 +187,7 @@ const sendTransaction = (rawTx) => {
     // 签好的tx发送到链上
     let txHash;
     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-    .on('transaction', (hash) => {
+    .on('transactionHash', (hash) => {
       txHash = hash;
       console.log('TX hash: ', hash);
     })
@@ -259,8 +259,8 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
         gasPrice = web3.utils.fromWei(values[1], "gwei");
         return rawTx;
       })
-      .then((rwaTx) => {
-        return sendTransaction(rwaTx);
+      .then((rawTx) => {
+        return sendTransaction(rawTx);
       })
       .then((result) => {
         // console.log("data object is ", dataObject);
