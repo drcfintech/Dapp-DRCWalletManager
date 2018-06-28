@@ -176,47 +176,64 @@ const sendTransaction = (rawTx) => {
     // 解决 RangeError: private key length is invalid
     tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
     let serializedTx = tx.serialize();
+
+    // a simple function to add the real gas Price to the receipt data
+    let finalReceipt = (receipt) => {
+      let res = receipt;
+      res.gasPrice = rawTx.gasPrice;
+      return res;
+    }
+
     // 签好的tx发送到链上
     let txHash;
     web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
     .on('transaction', (hash) => {
       txHash = hash;
+      console.log('TX hash: ', hash);
     })
     .on('receipt', (receipt) => {
-      console.log(receipt);
-      let res = receipt;
-      res.gasPrice = rawTx.gasPrice;
-      resolve(res);
+      console.log('get receipt after send transaction: ', receipt);
+      return resolve(finalReceipt(receipt));
     })
     .on('confirmation', (confirmationNumber, receipt) => {
     })
-    .catch(err => {
-      console.log("catch an error after sendTransaction...");
-      if (err && err.includes('not mined within 50 blocks')) {
-        console.log("met error of not mined within 50 blocks...");
-        const handle = setInterval(() => {
-          web3.eth.getTransactionReceipt(txHash)
-          .then((resp) => {
-            if(resp != null && resp.blockNumber > 0) {
-              clearInterval(handle);
-              let finalRes = resp;
-              finalRes.gasPrice = rawTx.gasPrice;
-              return resolve(finalRes);
-            }
-          }); 
-        });
+    .on('error', (err, receipt) => {
+      console.error('catch an error after sendTransaction... ', err);
+      if (err) {
+        if (err.message.includes('not mined within 50 blocks')) {
+          console.log("met error of not mined within 50 blocks...");
+          if (receipt) {
+            console.log('the real tx has already got the receipt: ', receipt);
+            return resolve(finalReceipt(receipt));
+          }
+
+          // keep trying to get TX receipt
+          const handle = setInterval(() => {
+            web3.eth.getTransactionReceipt(txHash)
+            .then((resp) => {
+              if(resp != null && resp.blockNumber > 0) {
+                clearInterval(handle);
+                return resolve(finalReceipt(resp));
+              }
+            }); 
+          });
         
-        const TIME_OUT = 1800000; 
-        setTimeout(() => {
-          clearTimeout(handle);
-        }, TIME_OUT);
+          const TIME_OUT = 1800000; // 30 minutes timeout
+          setTimeout(() => {
+            clearTimeout(handle);
+          }, TIME_OUT);
+        } else if (err.message.includes('out of gas')) {
+          console.error("account doesn't have enough gas...");
+          console.log('TX receipt, ', receipt);
+        }
+
+        reject(err);
       }
-      reject(err);
     });
   })
-  .catch(err => {
-    console.log("catch error when sentTransaction");
-    return new Promise.reject(err);
+  .catch(e => {
+    console.error("catch error when sendTransaction");
+    return new Promise.reject(e);
   });
 };
 
@@ -256,7 +273,7 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
       })
       .catch(e => {
         if (e) {
-          console.log('evm error', e);
+          console.error('evm error', e);
           if(dataObject != {}) {
             dataObject.res.end(JSON.stringify(responceData.transactionError));
           }
