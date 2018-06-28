@@ -13,7 +13,11 @@ module.exports = {
     },
     evmError: {
         status: "failed",
-        msg: "其他"
+        msg: "以太坊虚拟机异常"
+    },
+    programError: {
+        status: "failed",
+        msg: "程序异常"
     },
     addressError: {
         status: "failed",

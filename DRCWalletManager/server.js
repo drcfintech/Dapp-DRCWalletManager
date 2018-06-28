@@ -414,6 +414,17 @@ var Actions = {
   
         TxExecution(encodeData, returnResult, dataObject);       
       }
+    })
+    .catch(e => {
+      if (e) {
+        console.log('program error', e);
+        dataObject.res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }      
     });
 
     return;
@@ -693,6 +704,17 @@ var Actions = {
           return;
         }
       });
+    })
+    .catch(e => {
+      if (e) {
+        console.log('program error', e);
+        dataObject.res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }      
     });
 
     return;
@@ -785,9 +807,13 @@ var Actions = {
           // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
           let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);  
           console.log(withdrawAddrNameBytes); 
-          const DECIMAL = web3.utils.toHex(1e18); 
-          var realValue = web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
-          console.log("real withdraw value is ", realValue);
+          // const DECIMAL = web3.utils.toHex(1e18); 
+          let realValue = (value) => {
+            var temp = value.toFixed(18);
+            // web3.utils.toBN(requestObject.value).mul(web3.utils.toBN(DECIMAL));
+            return web3.utils.toBN(Math.imul(temp, 1e18));
+          }
+          console.log("real withdraw value is ", realValue(requestObject.value));
           let encodeData_params = web3.eth.abi.encodeParameters(
             ['address', 'uint256', 'bytes32', 'address','uint256','bool'], 
             [requestObject.depositAddress.slice(2), 
@@ -842,7 +868,19 @@ var Actions = {
           TxExecution(encodeData, processResult, dataObject);
         }
       });
+    })
+    .catch(e => {
+      if (e) {
+        console.log('program error', e);
+        dataObject.res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }      
     });
+
     return;
   }
 };
