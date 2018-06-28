@@ -820,7 +820,7 @@ var Actions = {
               depositTime, 
               withdrawAddrNameBytes,
               requestObject.withdrawAddress.slice(2),
-              realValue,
+              realValue(requestObject.value),
               false]
           );
           console.log(encodeData_params);
