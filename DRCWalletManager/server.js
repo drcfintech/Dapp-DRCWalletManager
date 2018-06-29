@@ -107,6 +107,7 @@ function initWeb3Provider() {
 }
 
 let gasPrice;
+let currentNonce = -1;
 
 // 获取账户余额  警告 要大于 0.001Eth
 const getBalance = (callback, dataObject = {}) => {
@@ -144,7 +145,11 @@ const getNonce = () => {
         }
         if (result) {
           clearInterval(handle);
-          resolve(web3.utils.toHex(result));
+          console.log('current nonce is: ', currentNonce);
+          console.log('current transaction count is: ', result);
+          if (currentNonce < result) currentNonce = result;
+          else currentNonce += 1;
+          resolve(web3.utils.toHex(currentNonce)); // make sure the nonce is different
         }
       });
     });
@@ -166,13 +171,14 @@ const getGasPrice = () => {
         }
         //resolve(web3.utils.toHex(result));
         if (result) {
+          clearInterval(handle);
+          
           gasPrice = web3.utils.fromWei(result, "gwei");
           console.log('gasPrice  ', gasPrice + 'gwei');
           if (gasPrice >= 3) result *= 1.25;
           else if (gasPrice >= 2) result *= 1.5;
           else result *= 2;
-
-          clearInterval(handle);
+          
           resolve(web3.utils.toHex(result));
         }
       });
@@ -656,8 +662,8 @@ var Actions = {
               }
 
               if (result) {
-                console.log('gasPrice  ', result.gasPrice);
                 clearInterval(handle);
+                console.log('gasPrice  ', result.gasPrice);
                 resolve(result.gasPrice);
               }
             });
@@ -680,8 +686,8 @@ var Actions = {
 
               // returnOneObject.gasUsed = result.gasUsed;
               if (result) {
-                console.log('gasUsed  ', result.gasUsed);
                 clearInterval(handle);
+                console.log('gasUsed  ', result.gasUsed);
                 resolve(result.gasUsed);
               }
             });
@@ -703,8 +709,8 @@ var Actions = {
               }
  
               if (res) {
-                console.log('timestamp  ', res.timestamp);
                 clearInterval(handle);
+                console.log('timestamp  ', res.timestamp);
                 resolve(res.timestamp);
               }
             });
