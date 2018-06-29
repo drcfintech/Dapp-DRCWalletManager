@@ -152,7 +152,7 @@ const getNonce = () => {
           resolve(web3.utils.toHex(currentNonce)); // make sure the nonce is different
         }
       });
-    });
+    }, 3000);
   })
   .catch(err => {
     console.log("catch error when getNonce");
@@ -182,7 +182,7 @@ const getGasPrice = () => {
           resolve(web3.utils.toHex(result));
         }
       });
-    });
+    }, 3000);
   })
   .catch(err => {
     console.log("catch error when getGasPrice");
@@ -244,7 +244,7 @@ const sendTransaction = (rawTx) => {
               clearInterval(handle);
               reject(err);
             })
-          });
+          }, 3000);
         
           // const TIME_OUT = 1800000; // 30 minutes timeout
           // setTimeout(() => {
@@ -667,7 +667,7 @@ var Actions = {
                 resolve(result.gasPrice);
               }
             });
-          });
+          }, 3000);
         })
         .catch(err => {
           console.log("catch error when getGasPrice");
@@ -691,7 +691,7 @@ var Actions = {
                 resolve(result.gasUsed);
               }
             });
-          });
+          }, 3000);
         })
         .catch(err => {
           console.log("catch error when getGasUsed");
@@ -714,7 +714,7 @@ var Actions = {
                 resolve(res.timestamp);
               }
             });
-          });
+          }, 3000);
         })
         .catch(err => {
           console.log("catch error when getTxTimestamp");
