@@ -138,7 +138,8 @@ const getNonce = () => {
   return new Promise((resolve, reject) => {
     web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
       if (error) reject(error);
-      resolve(web3.utils.toHex(result));
+      if (result) resolve(web3.utils.toHex(result));
+      else reject(new Error('cannot get nonce!'));
     });
   })
   .catch(err => {
@@ -153,13 +154,17 @@ const getGasPrice = () => {
     web3.eth.getGasPrice((error, result) => {
       if (error) reject(error);
       //resolve(web3.utils.toHex(result));
-      gasPrice = web3.utils.fromWei(result, "gwei");
-      console.log('gasPrice  ', gasPrice + 'gwei');
-      if (gasPrice >= 3) result *= 1.25;
-      else if (gasPrice >= 2) result *= 1.5;
-      else result *= 2;
+      if (result) {
+        gasPrice = web3.utils.fromWei(result, "gwei");
+        console.log('gasPrice  ', gasPrice + 'gwei');
+        if (gasPrice >= 3) result *= 1.25;
+        else if (gasPrice >= 2) result *= 1.5;
+        else result *= 2;
 
-      resolve(web3.utils.toHex(result));
+        resolve(web3.utils.toHex(result));
+      } else {
+        reject(new Error('cannot get gasPrice'));
+      }
     });
   })
   .catch(err => {
@@ -629,8 +634,12 @@ var Actions = {
           web3.eth.getTransaction(txHash, (error, result) => {
             if (error) reject(error);
 
-            if (result) console.log('gasPrice  ', result.gasPrice);
-            resolve(result.gasPrice);
+            if (result) {
+              console.log('gasPrice  ', result.gasPrice);
+              resolve(result.gasPrice);
+            } else {
+              reject(new Error('cannot get transaction data!'));
+            }
           });
         })
         .catch(err => {
@@ -645,8 +654,12 @@ var Actions = {
             if (error) reject(error);
 
             // returnOneObject.gasUsed = result.gasUsed;
-            if (result) console.log('gasUsed  ', result.gasUsed);
-            resolve(result.gasUsed);
+            if (result) {
+              console.log('gasUsed  ', result.gasUsed);
+              resolve(result.gasUsed);
+            } else {
+              reject(new Error('cannot get transaction receipt data!'));
+            }
           });
         })
         .catch(err => {
@@ -660,8 +673,12 @@ var Actions = {
           web3.eth.getBlock(block, (err, res) => {
             if (err) reject(err);
  
-            if (res) console.log('timestamp  ', res.timestamp);
-            resolve(res.timestamp);
+            if (res) {
+              console.log('timestamp  ', res.timestamp);
+              resolve(res.timestamp);
+            } else {
+              reject(new Error('cannot get block data!'));
+            }
           });
         })
         .catch(err => {
