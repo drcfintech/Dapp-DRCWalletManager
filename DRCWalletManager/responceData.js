@@ -31,6 +31,10 @@ module.exports = {
         status: "failed",
         msg: "交易异常或失败"
     },
+    gasPriceTooHigh: {
+        status: 'failed',
+        msg: '目前以太坊拥堵，交易价格超过32Gwei，费用过高'
+    }，
     getDepositAddrSuccess: {
         status: "success",
         msg: "获取充值地址成功"

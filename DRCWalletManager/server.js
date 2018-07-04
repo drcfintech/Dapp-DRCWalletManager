@@ -59,6 +59,7 @@ const DRCWalletMgrParams_contractABI = DRCWalletMgrParams_artifacts.abi;
 let DRCWalletMgrParamsContract;
 
 const GAS_LIMIT = 4700000; // default gas limit
+const SAFE_GAS_PRICE = 41; // default gas price (unit is gwei)
 const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
 
 
@@ -200,8 +201,9 @@ const sendTransaction = (rawTx) => {
     .on('error', (err, receipt) => {
       console.error('catch an error after sendTransaction... ', err);
       if (err) {
-        if (err.message.includes('not mined within 50 blocks')) {
-          console.log("met error of not mined within 50 blocks...");
+        if (err.message.includes('not mined within 50 blocks') 
+            || err.message.includes('not mined within750 seconds')) {
+          console.log("met error of not mined within 50 blocks or 750 seconds...");
           if (receipt) {
             console.log('the real tx has already got the receipt: ', receipt);
             return resolve(finalReceipt(receipt));
@@ -248,6 +250,21 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
     let returnObject = {};
     Promise.all([getNonce(), getGasPrice()])
       .then(values => {
+        gasPrice = web3.utils.fromWei(values[1], "gwei");
+        console.log('current gasPrice: ', gasPrice);
+
+        // if current gas price is too high, then cancel the transaction
+        if (gasPrice > SAFE_GAS_PRICE) {
+          if(dataObject != {}) {
+            dataObject.res.end(JSON.stringify(responceData.gasPriceTooHigh));
+          }
+          // 重置
+          returnObject = {};
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+          return;
+        }
+
         let rawTx = {
           nonce: values[0],
           to: contractAT,
@@ -256,7 +273,6 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
           data: encodeData
         };
  
-        gasPrice = web3.utils.fromWei(values[1], "gwei");
         return rawTx;
       })
       .then((rawTx) => {
