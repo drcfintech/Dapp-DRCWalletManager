@@ -108,6 +108,7 @@ function initWeb3Provider() {
 }
 
 let gasPrice;
+let currentNonce = -1;
 
 // 获取账户余额  警告 要大于 0.001Eth
 const getBalance = (callback, dataObject = {}) => {
@@ -137,10 +138,22 @@ const getBalance = (callback, dataObject = {}) => {
 // 获取data部分的nonce
 const getNonce = () => {
   return new Promise((resolve, reject) => {
-    web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
-      if (error) reject(error);
-      resolve(web3.utils.toHex(result));
-    });
+    const handle = setInterval(() => {
+      web3.eth.getTransactionCount(web3.eth.defaultAccount, (error, result) => {
+        if (error) {
+          clearInterval(handle);
+          reject(error);
+        }
+        if (result) {
+          clearInterval(handle);
+          console.log('current nonce is: ', currentNonce);
+          console.log('current transaction count is: ', result);
+          if (currentNonce < result) currentNonce = result;
+          else currentNonce += 1;
+          resolve(web3.utils.toHex(currentNonce)); // make sure the nonce is different
+        }
+      });
+    }, 5000);
   })
   .catch(err => {
     console.log("catch error when getNonce");
@@ -151,17 +164,26 @@ const getNonce = () => {
 // 获取data部分的gasPrice
 const getGasPrice = () => {
   return new Promise((resolve, reject) => {
-    web3.eth.getGasPrice((error, result) => {
-      if (error) reject(error);
-      //resolve(web3.utils.toHex(result));
-      gasPrice = web3.utils.fromWei(result, "gwei");
-      console.log('gasPrice  ', gasPrice + 'gwei');
-      if (gasPrice >= 3) result *= 1.25;
-      else if (gasPrice >= 2) result *= 1.5;
-      else result *= 2;
-
-      resolve(web3.utils.toHex(result));
-    });
+    const handle = setInterval(() => {
+      web3.eth.getGasPrice((error, result) => {
+        if (error) {
+          clearInterval(handle);
+          reject(error);
+        }
+        //resolve(web3.utils.toHex(result));
+        if (result) {
+          clearInterval(handle);
+          
+          gasPrice = web3.utils.fromWei(result, "gwei");
+          console.log('gasPrice  ', gasPrice + 'gwei');
+          if (gasPrice >= 3) result *= 1.25;
+          else if (gasPrice >= 2) result *= 1.5;
+          else result *= 2;
+          
+          resolve(web3.utils.toHex(result));
+        }
+      });
+    }, 5000);
   })
   .catch(err => {
     console.log("catch error when getGasPrice");
@@ -214,16 +236,22 @@ const sendTransaction = (rawTx) => {
             web3.eth.getTransactionReceipt(txHash)
             .then((resp) => {
               if(resp != null && resp.blockNumber > 0) {
+                console.log('get Tx receipt from error handling: ', resp);
                 clearInterval(handle);
                 return resolve(finalReceipt(resp));
               }
-            }); 
-          });
+            })
+            .catch(err => {
+              console.log('met error when getting TX receipt from error handling');
+              clearInterval(handle);
+              reject(err);
+            })
+          }, 5000);
         
-          const TIME_OUT = 1800000; // 30 minutes timeout
-          setTimeout(() => {
-            clearTimeout(handle);
-          }, TIME_OUT);
+          // const TIME_OUT = 1800000; // 30 minutes timeout
+          // setTimeout(() => {
+          //   clearTimeout(handle);
+          // }, TIME_OUT);
         } else if (err.message.includes('out of gas')) {
           console.error("account doesn't have enough gas...");
           console.log('TX receipt, ', receipt);
@@ -642,12 +670,20 @@ var Actions = {
 
       const getGasPrice = (txHash) => {
         return new Promise((resolve, reject) => {
-          web3.eth.getTransaction(txHash, (error, result) => {
-            if (error) reject(error);
+          const handle = setInterval(() => {
+            web3.eth.getTransaction(txHash, (error, result) => {
+              if (error) {
+                clearInterval(handle);
+                reject(error);
+              }
 
-            if (result) console.log('gasPrice  ', result.gasPrice);
-            resolve(result.gasPrice);
-          });
+              if (result) {
+                clearInterval(handle);
+                console.log('gasPrice  ', result.gasPrice);
+                resolve(result.gasPrice);
+              }
+            });
+          }, 5000);
         })
         .catch(err => {
           console.log("catch error when getGasPrice");
@@ -657,13 +693,21 @@ var Actions = {
 
       const getGasUsed = (txHash) => {
         return new Promise((resolve, reject) => {
-          web3.eth.getTransactionReceipt(txHash, (error, result) => {
-            if (error) reject(error);
+          const handle = setInterval(() => {
+            web3.eth.getTransactionReceipt(txHash, (error, result) => {
+              if (error) {
+                clearInterval(handle);
+                reject(error);
+              }
 
-            // returnOneObject.gasUsed = result.gasUsed;
-            if (result) console.log('gasUsed  ', result.gasUsed);
-            resolve(result.gasUsed);
-          });
+              // returnOneObject.gasUsed = result.gasUsed;
+              if (result) {
+                clearInterval(handle);
+                console.log('gasUsed  ', result.gasUsed);
+                resolve(result.gasUsed);
+              }
+            });
+          }, 5000);
         })
         .catch(err => {
           console.log("catch error when getGasUsed");
@@ -673,12 +717,20 @@ var Actions = {
       
       const getTxTimestamp = (block) => {
         return new Promise((resolve, reject) => {
-          web3.eth.getBlock(block, (err, res) => {
-            if (err) reject(err);
+          const handle = setInterval(() => {
+            web3.eth.getBlock(block, (err, res) => {
+              if (err) {
+                clearInterval(handle);
+                reject(err);
+              }
  
-            if (res) console.log('timestamp  ', res.timestamp);
-            resolve(res.timestamp);
-          });
+              if (res) {
+                clearInterval(handle);
+                console.log('timestamp  ', res.timestamp);
+                resolve(res.timestamp);
+              }
+            });
+          }, 5000);
         })
         .catch(err => {
           console.log("catch error when getTxTimestamp");
