@@ -492,7 +492,7 @@ var Actions = {
         console.log('current gasPrice: ', gasPrice);
 
         // if current gas price is too high, then cancel the transaction
-        if (gasPrice > SAFE_GAS_PRICE) {
+        if (gasPrice > /*SAFE_GAS_PRICE*/0.1) {
           dataObject.res.end(JSON.stringify(responceData.gasPriceTooHigh));
           // 重置
           // returnObject = {};
