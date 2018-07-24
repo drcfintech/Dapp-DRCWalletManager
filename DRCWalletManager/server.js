@@ -492,7 +492,7 @@ var Actions = {
         console.log('current gasPrice: ', gasPrice);
 
         // if current gas price is too high, then cancel the transaction
-        if (gasPrice > /*SAFE_GAS_PRICE*/0.1) {
+        if (gasPrice > /*SAFE_GAS_PRICE*/3) {
           dataObject.res.end(JSON.stringify(responceData.gasPriceTooHigh));
           // 重置
           // returnObject = {};
@@ -1012,6 +1012,17 @@ app.use((req, res, next) => {
     }
     next();
   })
+  .catch(e => {
+    if (e) {
+      console.log('program error', e);
+      res.end(JSON.stringify(responceData.programError));
+      // 重置
+      // returnObject = {};
+      // 保存log
+      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+      return;
+    }
+  });
 });
 
 // 验签模块
@@ -1024,9 +1035,8 @@ app.use((req, res, next) => {
   } else {
     // 验签不通过，返回错误信息
     res.end(JSON.stringify(responceData.validationFailed));
-  };
+  }
 });
-
 
 /**********************************************/
 /**************SERVER
