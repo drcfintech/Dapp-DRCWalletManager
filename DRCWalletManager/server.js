@@ -1,7 +1,7 @@
 const validation = require("./validation.js");
 const log = require("./log/log.js");
 // const timer = require("./timer.js");
-const responceData = require("./responceData.js")
+const responceData = require("./responceData.js");
 // log.saveLog();
 const app = require('express')();
 const serverConfig = require('./config/serverConfig.json');
@@ -472,6 +472,38 @@ var Actions = {
     });
 
     return;
+  },
+
+  // 去链上查询结果
+  getEthStatus: function (data) {
+    let dataObject = data;
+
+    if (typeof dataObject.data != 'string' || dataObject.data != 'getEthStatus') {
+      // 返回failed 附带message
+      dataObject.res.end(JSON.stringify(responceData.dataError));
+      // 保存log
+      // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.addressError);
+      return;
+    }
+
+    Promise.all([getGasPrice()])
+      .then(values => {
+        gasPrice = web3.utils.fromWei(values[0], "gwei");
+        console.log('current gasPrice: ', gasPrice);
+
+        // if current gas price is too high, then cancel the transaction
+        if (gasPrice > SAFE_GAS_PRICE) {
+          dataObject.res.end(JSON.stringify(responceData.gasPriceTooHigh));
+          // 重置
+          // returnObject = {};
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
+        } else {
+          dataObject.res.end(JSON.stringify(responceData.ethStatusSuccess));
+        }
+
+        return;
+      });
   },
 
   // 去链上查询结果
@@ -1000,16 +1032,25 @@ app.use((req, res, next) => {
 /**************SERVER
 /**********************************************/
 app.post("/createDepositAddr", function (req, res) {
-  console.log('/createDepositAddr', qs.hash);
+  console.log('/createDepositAddr: ', qs.hash);
   // 上链方法
   Actions.createDepositAddr({
     data: qs.hash.slice(0, 42),
     res: res
   });
-});　　
+});
+
+app.post("/getEthStatus", function (req, res) {　　
+  console.log('/getEthStatus: ', qs.hash);
+  // 查询方法
+  result = Actions.getEthStatus({
+    data: qs.hash,
+    res: res
+  });
+});　
 
 app.post("/getDepositAddr", function (req, res) {　　
-  console.log('/getDepositAddr', qs.hash);
+  console.log('/getDepositAddr: ', qs.hash);
   // 查询方法
   result = Actions.getDepositAddr({
     data: qs.hash.slice(0, 42),
@@ -1018,7 +1059,7 @@ app.post("/getDepositAddr", function (req, res) {　　
 });　　
 
 app.post("/getDepositTxs", function (req, res) {　　
-  console.log('/getDepositTxs', qs.hash);
+  console.log('/getDepositTxs: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxs({
     data: qs.hash,
@@ -1027,7 +1068,7 @@ app.post("/getDepositTxs", function (req, res) {　　
 });　　　
 
 app.post("/getDepositTxsDetail", function (req, res) {　　
-  console.log('/getDepositTxsDetail', qs.hash);
+  console.log('/getDepositTxsDetail: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxsDetail({
     data: qs.hash,
