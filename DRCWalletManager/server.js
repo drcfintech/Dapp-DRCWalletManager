@@ -477,6 +477,7 @@ var Actions = {
   // 去链上查询结果
   getEthStatus: function (data) {
     let dataObject = data;
+    console.log('data in getEthStatus is: ', data);
 
     if (typeof dataObject.data != 'string' || dataObject.data != 'getEthStatus') {
       // 返回failed 附带message
