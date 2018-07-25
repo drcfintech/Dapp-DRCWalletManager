@@ -1003,25 +1003,26 @@ app.use((req, res, next) => {
   // 初始化socket连接
   initWeb3Provider();
   req.on('data', function (chunk) {
-    // 将前台传来的值，转回对象类型
-    qs = querystring.parse(chunk);
-    console.log("data from client side: ", qs);
-    // 处理java post过来的数据
-    if (qs.data) {
-      qs = JSON.parse(qs.data);
-      console.log(qs);
-    }
-    next();
-  })
-  .catch(e => {
-    if (e) {
-      console.log('program error', e);
-      res.end(JSON.stringify(responceData.programError));
-      // 重置
-      // returnObject = {};
-      // 保存log
-      // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-      return;
+    try {
+      // 将前台传来的值，转回对象类型
+      qs = querystring.parse(chunk);
+      console.log("data from client side: ", qs);
+      // 处理java post过来的数据
+      if (qs.data) {
+        qs = JSON.parse(qs.data);
+        console.log(qs);
+      }
+      next();
+    } catch(e) {
+      if (e) {
+        console.error('program error', e);
+        res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }
     }
   });
 });
