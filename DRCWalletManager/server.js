@@ -182,7 +182,7 @@ const getGasPrice = () => {
           else if (gasPrice >= 3) result *= 1.12;
           else result *= 1.1;
           
-          resolve(web3.utils.toHex(result));
+          resolve(web3.utils.toHex(Math.round(result)));
         }
       });
     }, 5000);
@@ -1102,7 +1102,7 @@ app.post("/withdraw", function (req, res) {　
   if (lastWid && qs.wid === lastWid) return;
   lastWid = qs.wid;
   console.log('last wid: ', lastWid);
-  
+
   // 查询方法
   result = Actions.withdraw({
     data: qs,
