@@ -176,9 +176,11 @@ const getGasPrice = () => {
           
           gasPrice = web3.utils.fromWei(result, "gwei");
           console.log('gasPrice  ', gasPrice + 'gwei');
-          if (gasPrice >= 3) result *= 1.25;
-          else if (gasPrice >= 2) result *= 1.5;
-          else result *= 2;
+          if (gasPrice >= 30) result *= 1.25;
+          else if (gasPrice >= 20) result *= 1.2;
+          else if (gasPrice >= 10) result *= 1.15;
+          else if (gasPrice >= 3) result *= 1.12;
+          else result *= 1.1;
           
           resolve(web3.utils.toHex(result));
         }
@@ -253,8 +255,8 @@ const sendTransaction = (rawTx) => {
           //   clearTimeout(handle);
           // }, TIME_OUT);
         } else if (err.message.includes('out of gas')) {
-          console.error("account doesn't have enough gas...");
-          console.log('TX receipt, ', receipt);
+          console.error("account doesn't have enough gas or TX has been reverted...");
+          // console.log('TX receipt, ', receipt);
         }
 
         reject(err);
@@ -477,7 +479,7 @@ var Actions = {
   // 去链上查询结果
   getEthStatus: function (data) {
     let dataObject = data;
-    console.log('data in getEthStatus is: ', data);
+    console.log('data in getEthStatus is: ', dataObject.data);
 
     if (typeof dataObject.data != 'string' || dataObject.data != 'getEthStatus') {
       // 返回failed 附带message
@@ -1017,8 +1019,6 @@ app.use((req, res, next) => {
       if (e) {
         console.error('program error', e);
         res.end(JSON.stringify(responceData.programError));
-        // 重置
-        // returnObject = {};
         // 保存log
         // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
         return;
@@ -1088,6 +1088,7 @@ app.post("/getDepositTxsDetail", function (req, res) {　　
   });
 });　　　
 
+let lastWid;
 app.post("/withdraw", function (req, res) {　
   if (qs.hash) {
     console.log('/withdraw info: ', qs.hash);
@@ -1096,6 +1097,12 @@ app.post("/withdraw", function (req, res) {　
   console.log('/withdraw to ', qs.withdrawAddress);
   console.log('/withdraw from ', qs.depositAddress);
   console.log('/withdraw value ', qs.value);
+  console.log('/withdraw id: ', qs.wid);
+
+  if (lastWid && qs.wid === lastWid) return;
+  lastWid = qs.wid;
+  console.log('last wid: ', lastWid);
+  
   // 查询方法
   result = Actions.withdraw({
     data: qs,
