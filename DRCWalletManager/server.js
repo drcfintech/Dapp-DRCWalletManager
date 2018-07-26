@@ -194,7 +194,7 @@ const getGasPrice = () => {
 };
 
 // 给tx签名，并且发送上链
-const sendTransaction = (rawTx) => {
+const sendTransaction = (rawTx, txType) => {
   return new Promise((resolve, reject) => {
     let tx = new Tx(rawTx);
 
@@ -215,6 +215,7 @@ const sendTransaction = (rawTx) => {
     .on('transactionHash', (hash) => {
       txHash = hash;
       console.log('TX hash: ', hash);
+      if (txType == 'withdraw') return resolve(txHash); // only for withdraw transaction
     })
     .on('receipt', (receipt) => {
       console.log('get receipt after send transaction: ', receipt);
@@ -269,7 +270,7 @@ const sendTransaction = (rawTx) => {
   });
 };
 
-let TxExecution = function(encodeData, resultCallback, dataObject = {}) {   
+let TxExecution = function(encodeData, resultCallback, dataObject = {}, txType = 'normal') {   
 
   // 上链结果响应到请求方
   // const returnResult = (result) => {
@@ -306,7 +307,7 @@ let TxExecution = function(encodeData, resultCallback, dataObject = {}) {
         return rawTx;
       })
       .then((rawTx) => {
-        return sendTransaction(rawTx);
+        return sendTransaction(rawTx, txType);
       })
       .then((result) => {
         // console.log("data object is ", dataObject);
@@ -1051,10 +1052,11 @@ var Actions = {
             }
             
             returnObject = responceData.withdrawSuccess;
-            returnObject.txHash = result.transactionHash;
-            returnObject.blockNumber = result.blockNumber;
-            returnObject.gasUsed = result.gasUsed;
-            returnObject.gasPrice = result.gasPrice;
+            returnObject.txHash = result;
+            // returnObject.txHash = result.transactionHash;
+            // returnObject.blockNumber = result.blockNumber;
+            // returnObject.gasUsed = result.gasUsed;
+            // returnObject.gasPrice = result.gasPrice;
 
             logObject = result.logs[0];
             console.log(logObject);
@@ -1073,7 +1075,7 @@ var Actions = {
 
           // console.log("data Object outside is ", dataObject);
 
-          TxExecution(encodeData, processResult, dataObject);
+          TxExecution(encodeData, processResult, dataObject, 'withdraw');
         }
       })
       .catch(e => {
