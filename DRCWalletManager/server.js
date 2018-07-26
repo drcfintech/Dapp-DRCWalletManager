@@ -219,7 +219,7 @@ const sendTransaction = (rawTx, txType) => {
     })
     .on('receipt', (receipt) => {
       console.log('get receipt after send transaction: ', receipt);
-      return resolve(finalReceipt(receipt));
+      if (txType == 'normal') return resolve(finalReceipt(receipt));
     })
     .on('confirmation', (confirmationNumber, receipt) => {
     })
@@ -231,7 +231,7 @@ const sendTransaction = (rawTx, txType) => {
           console.log("met error of not mined within 50 blocks or 750 seconds...");
           if (receipt) {
             console.log('the real tx has already got the receipt: ', receipt);
-            return resolve(finalReceipt(receipt));
+            if (txType == 'normal') return resolve(finalReceipt(receipt));
           }
 
           // keep trying to get TX receipt
@@ -241,7 +241,7 @@ const sendTransaction = (rawTx, txType) => {
               if(resp != null && resp.blockNumber > 0) {
                 console.log('get Tx receipt from error handling: ', resp);
                 clearInterval(handle);
-                return resolve(finalReceipt(resp));
+                if (txType == 'normal') return resolve(finalReceipt(resp));
               }
             })
             .catch(err => {
@@ -1057,8 +1057,8 @@ var Actions = {
             // returnObject.gasUsed = result.gasUsed;
             // returnObject.gasPrice = result.gasPrice;
 
-            logObject = result.logs[0];
-            console.log(logObject);
+            // logObject = result.logs[0];
+            // console.log(logObject);
 
             console.log("withdraw return object is: ", returnObject);
           
