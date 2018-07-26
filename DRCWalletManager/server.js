@@ -755,9 +755,10 @@ var Actions = {
   getDepositTxsDetail: function (data) {
     let dataObject = data;
 
+    let queryData;
     try {
       // let queryData = dataObject.data.split(",");
-      let queryData = JSON.parse(dataObject.data);
+      queryData = JSON.parse(dataObject.data);
       console.log(queryData);
       console.log(queryData.length);
       console.log(queryData[0]);
@@ -799,12 +800,17 @@ var Actions = {
         console.log(blockHigh);   
         console.log(queryData[i].blockNubmber);
         console.log(returnObject.records[i].blockNumber);
-        console.log(blockHigh - queryData[i].blockNubmber);
-        console.log(totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber));
-        if ((blockHigh - returnObject.records[i].blockNumber) > totalConfirmNumber) {
-          returnObject.records[i].blockConfirmNum = totalConfirmNumber;
+        if (returnObject.records[i].blockNumber != null) {
+          console.log(blockHigh - queryData[i].blockNubmber);
+          console.log(totalConfirmNumber - (blockHigh - returnObject.records[i].blockNumber));
+          if ((blockHigh - returnObject.records[i].blockNumber) > totalConfirmNumber) {
+            returnObject.records[i].blockConfirmNum = totalConfirmNumber;
+          } else {
+            returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber; 
+          }
         } else {
-          returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber; 
+          returnObject.records[i].blockConfirmNum = 0;
+          console.log(returnObject.records[i].blockConfirmNum);
         }     
       }
       console.log("get Tx details return object currently is: ", returnObject);
