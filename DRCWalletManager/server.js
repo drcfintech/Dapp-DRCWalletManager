@@ -1038,12 +1038,11 @@ var Actions = {
           let encodeData = encodeData_function + encodeData_params.slice(2);
           console.log(encodeData);
 
-
           // 上链结果响应到请求方
           let processResult = (result, returnObject, dataObject) => {
-            status = web3.utils.hexToNumber(web3.utils.toHex(result.status));
-            console.log("withdraw status: ", status);
-            if (!status) {
+            // status = web3.utils.hexToNumber(web3.utils.toHex(result.status));
+            console.log("withdraw tx: ", result);
+            if (!result) {
               // console.log(dataObject);
               dataObject.res.end(JSON.stringify(responceData.withdrawFailed));
               // log.saveLog(operation[2], new Date().toLocaleString(), qs.withdrawAddress, gasPrice, result.gasUsed, responceData.withdrawFailed);
