@@ -658,20 +658,125 @@ var Actions = {
     });
   },
 
+  getTxsBlocks: function (data) {
+    let dataObject = data;
+
+    try {
+      // let queryData = dataObject.data.split(",");
+      let queryData = JSON.parse(dataObject.data);
+      console.log(queryData);
+      console.log(queryData.length);
+      console.log(queryData[0]);
+      if (queryData.length == 0) {
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.dataError));
+        // 保存log
+        // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.dataError);
+        return;
+      }
+
+      let returnObject = responceData.getTxsBlocksSuccess;
+      returnObject.records = new Array(queryData.length);
+
+      for (var i = 0; i < queryData.length; i++) {  
+        returnObject.records[i] = {txHash: queryData[i].txHash};
+      }
+      console.log("get Tx blocks return object currently is: ", returnObject);
+
+      const getBlockNum = (txHash) => {
+        return new Promise((resolve, reject) => {
+          const handle = setInterval(() => {
+            web3.eth.getTransaction(txHash, (error, result) => {
+              if (error) {
+                clearInterval(handle);
+                reject(error);
+              }
+
+              if (result) {
+                clearInterval(handle);
+                console.log('block number: ', result.blockNumber);
+                resolve(result.blockNumber);
+              }
+            });
+          }, 5000);
+        })
+        .catch(err => {
+          console.log("catch error when getGasPrice");
+          return new Promise.reject(err);
+        });
+      } 
+
+      const getTxsBlockNumbers = async (returnOneObject, queryObj) => {
+        returnOneObject.blockNumber = await getBlockNum(queryObj.txHash);
+        console.log('get block nubmer is: ', returnOneObject.blockNumber);
+      }
+
+      var promises = returnObject.records.map((record, ind) => {      
+        return getTxsBlockNumbers(record, queryData[ind]);
+      });
+ 
+      Promise.all(promises)
+      .then(values => {
+        // 返回success 附带message
+        console.log("get Tx blocks return Object finally is: ", returnObject);
+        dataObject.res.end(JSON.stringify(returnObject));
+        // 重置
+        returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);
+      })
+      .catch(e => {
+        if (e) {
+          console.log('evm error', e);
+          dataObject.res.end(JSON.stringify(responceData.evmError));
+          // 重置
+          returnObject = {};
+          // 保存log
+          // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+          return;
+        }
+      });
+    } catch(e) {
+      if (e) {
+        console.log('program error', e);
+        dataObject.res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }      
+    }
+
+    return;
+  },
+
   getDepositTxsDetail: function (data) {
     let dataObject = data;
 
-    // let queryData = dataObject.data.split(",");
-    let queryData = JSON.parse(dataObject.data);
-    console.log(queryData);
-    console.log(queryData.length);
-    console.log(queryData[0]);
-    if (queryData.length == 0) {
-      // 返回failed 附带message
-      dataObject.res.end(JSON.stringify(responceData.dataError));
-      // 保存log
-      // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.dataError);
-      return;
+    try {
+      // let queryData = dataObject.data.split(",");
+      let queryData = JSON.parse(dataObject.data);
+      console.log(queryData);
+      console.log(queryData.length);
+      console.log(queryData[0]);
+      if (queryData.length == 0) {
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.dataError));
+        // 保存log
+        // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, 0, 0, responceData.dataError);
+        return;
+      }
+    } catch(e) {
+      if (e) {
+        console.log('program error', e);
+        dataObject.res.end(JSON.stringify(responceData.programError));
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }      
     }
 
     const totalConfirmNumber = 24;
@@ -701,7 +806,7 @@ var Actions = {
           returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber; 
         }     
       }
-      console.log("get Tx details return object is: ", returnObject);
+      console.log("get Tx details return object currently is: ", returnObject);
 
       const getGasPrice = (txHash) => {
         return new Promise((resolve, reject) => {
@@ -789,7 +894,7 @@ var Actions = {
       Promise.all(promises)
       .then(values => {
         // 返回success 附带message
-        console.log("return Object is: ", returnObject);
+        console.log("get Tx details return Object finally is: ", returnObject);
         dataObject.res.end(JSON.stringify(returnObject));
         // 重置
         returnObject = {};
@@ -1078,6 +1183,15 @@ app.post("/getDepositTxs", function (req, res) {　　
     res: res
   });
 });　　　
+
+app.post("/getTxsBlocks", function (req, res) {　　
+  console.log('/getTxsBlocks: ', qs.hash);
+  // 查询方法
+  result = Actions.getTxsBlocks({
+    data: qs.hash,
+    res: res
+  });
+});　　　　
 
 app.post("/getDepositTxsDetail", function (req, res) {　　
   console.log('/getDepositTxsDetail: ', qs.hash);

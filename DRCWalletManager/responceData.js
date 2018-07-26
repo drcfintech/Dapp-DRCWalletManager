@@ -51,6 +51,10 @@ module.exports = {
         status: "success",
         msg: "获取充值记录成功"
     },
+    getTxsBlocksSuccess: {
+        status: "success",
+        msg: "获取交易块号成功"
+    },
     getDepositTxDetailSuccess: {
         status: "success",
         msg: "获取充值记录详细信息成功"
