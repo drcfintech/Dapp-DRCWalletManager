@@ -827,7 +827,7 @@ var Actions = {
               if (result) {
                 clearInterval(handle);
                 console.log('gasPrice  ', result.gasPrice);
-                resolve(result.gasPrice);
+                return resolve(result.gasPrice);
               }
             });
           }, 5000);
@@ -850,8 +850,9 @@ var Actions = {
               // returnOneObject.gasUsed = result.gasUsed;
               if (result) {
                 clearInterval(handle);
+                console.log('tx status: ', result.status);
                 console.log('gasUsed  ', result.gasUsed);
-                resolve(result.gasUsed);
+                return resolve([result.status, result.gasUsed]);
               }
             });
           }, 5000);
@@ -874,7 +875,7 @@ var Actions = {
               if (res) {
                 clearInterval(handle);
                 console.log('timestamp  ', res.timestamp);
-                resolve(res.timestamp);
+                return resolve(res.timestamp);
               }
             });
           }, 5000);
@@ -887,9 +888,10 @@ var Actions = {
 
       const getGasPriceUsed = async (returnOneObject, queryObj) => {
         returnOneObject.gasPrice = await getGasPrice(queryObj.txHash);
-        returnOneObject.gasUsed = await getGasUsed(queryObj.txHash);
+        [returnOneObject.txstatus, returnOneObject.gasUsed] = await getGasUsed(queryObj.txHash);        
         returnOneObject.timestamp = await getTxTimestamp(queryObj.blockNumber);
         console.log(returnOneObject.gasPrice);
+        console.log(returnOneObject.txstatus);
         console.log(returnOneObject.gasUsed);
         console.log(returnOneObject.timestamp);
       }
