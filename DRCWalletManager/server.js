@@ -852,7 +852,11 @@ var Actions = {
                 clearInterval(handle);
                 console.log('tx status: ', result.status);
                 console.log('gasUsed  ', result.gasUsed);
-                return resolve([result.status, result.gasUsed]);
+                if (result.status) {
+                  return resolve(['success', result.gasUsed]);
+                } else {
+                  return resolve(['failed', result.gasUsed]);
+                }
               }
             });
           }, 5000);
@@ -1012,8 +1016,8 @@ var Actions = {
 
         if (!ifCheck || (balanceVal - frozenVal) >= requestObject.value) {
           // 新建空对象，作为http请求的返回值  
-          let returnObject = responceData.withdrawSuccess;      
-          let gasPrice;
+          // let returnObject = responceData.withdrawTxSuccess;      
+          // let gasPrice;
 
           // 拿到rawTx里面的data部分
           console.log(requestObject);
@@ -1058,7 +1062,7 @@ var Actions = {
               return;
             }
             
-            returnObject = responceData.withdrawSuccess;
+            returnObject = responceData.withdrawTxSuccess;
             returnObject.txHash = result;
             // returnObject.txHash = result.transactionHash;
             // returnObject.blockNumber = result.blockNumber;

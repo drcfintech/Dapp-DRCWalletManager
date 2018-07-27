@@ -67,13 +67,17 @@ module.exports = {
         status: "failed",
         msg: "获取充值余额失败"
     },
+    withdrawTxSuccess: {
+        status: "success",
+        msg: "提现交易生成"
+    },
     withdrawSuccess: {
         status: "success",
         msg: "提现成功"
     },
     withdrawFailed: {
         status: "failed",
-        msg: "提现失败"
+        msg: "提现交易失败"
     },
     createDepositAddrSuccess: {
         status: "success",
