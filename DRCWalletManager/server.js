@@ -693,7 +693,9 @@ var Actions = {
 
       const getBlockNum = (txHash) => {
         return new Promise((resolve, reject) => {
+          let iCount = 0;
           const handle = setInterval(() => {
+            iCount += 1;
             web3.eth.getTransaction(txHash, (error, result) => {
               console.log('get block tx hash is: ', txHash);
               if (error) {
@@ -704,7 +706,13 @@ var Actions = {
               if (result) {
                 clearInterval(handle);
                 console.log('block number: ', result.blockNumber);
-                resolve(result.blockNumber);
+                return resolve(result.blockNumber);
+              }
+
+              if (iCount > 2) {
+                clearInterval(handle);
+                console.log('cannot get block number this time...');\
+                return null;
               }
             });
           }, 5000);
@@ -712,7 +720,7 @@ var Actions = {
         .catch(err => {
           console.log("catch error when getBlockNum: ", err);
           return 'error'; // set the block number as 'error'
-        });
+        })
       } 
 
       const getTxsBlockNumbers = async (returnOneObject, queryObj) => {
