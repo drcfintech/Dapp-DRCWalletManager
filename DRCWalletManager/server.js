@@ -711,7 +711,7 @@ var Actions = {
 
               if (iCount > 2) {
                 clearInterval(handle);
-                console.log('cannot get block number this time...');\
+                console.log('cannot get block number this time...');
                 return null;
               }
             });
