@@ -180,7 +180,7 @@ const getGasPrice = () => {
           else if (gasPrice >= 20) result *= 1.2;
           else if (gasPrice >= 10) result *= 1.15;
           else if (gasPrice >= 3) result *= 1.12;
-          else result *= 1.1;
+          else result *= 1.11;
           
           resolve(web3.utils.toHex(Math.round(result)));
         }
@@ -235,13 +235,20 @@ const sendTransaction = (rawTx, txType) => {
           }
 
           // keep trying to get TX receipt
+          let iCount = 0;
           const handle = setInterval(() => {
+            iCount += 1;
             web3.eth.getTransactionReceipt(txHash)
             .then((resp) => {
               if(resp != null && resp.blockNumber > 0) {
                 console.log('get Tx receipt from error handling: ', resp);
                 clearInterval(handle);
                 if (txType == 'normal') return resolve(finalReceipt(resp));
+              }
+              if (iCount > 3600) {
+                console.log('has checked if TX had been mined for 300 minutes...');
+                clearInterval(handle); // not check any more after 300 minutes
+                throw('Tx had not been mined for more than 5 hours...');
               }
             })
             .catch(err => {
@@ -265,7 +272,7 @@ const sendTransaction = (rawTx, txType) => {
     });
   })
   .catch(e => {
-    console.error("catch error when sendTransaction");
+    console.error("catch error when sendTransaction: ", e);
     return new Promise.reject(e);
   });
 };
@@ -702,8 +709,8 @@ var Actions = {
           }, 5000);
         })
         .catch(err => {
-          console.log("catch error when getGasPrice");
-          return new Promise.reject(err);
+          console.log("catch error when getBlockNum: ", err);
+          return 'error'; // set the block number as 'error'
         });
       } 
 
