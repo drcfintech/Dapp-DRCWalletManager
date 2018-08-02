@@ -695,6 +695,7 @@ var Actions = {
         return new Promise((resolve, reject) => {
           const handle = setInterval(() => {
             web3.eth.getTransaction(txHash, (error, result) => {
+              console.log('get block tx hash is: ', txHash);
               if (error) {
                 clearInterval(handle);
                 reject(error);
