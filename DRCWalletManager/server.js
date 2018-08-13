@@ -61,6 +61,17 @@ let DRCWalletMgrParamsContract;
 const GAS_LIMIT = 4700000; // default gas limit
 const SAFE_GAS_PRICE = 41; // default gas price (unit is gwei)
 const ADDR_ZERO = "0x0000000000000000000000000000000000000000";
+const gasPricePromote = {
+  GT_30: 1.25,
+  GT_20: 1.2,
+  GT_10: 1.15,
+  GT_3: 1.12,
+  DEFAULT: 1.11
+};
+const transactionType = {
+  WITHDRAW: 'withdraw',
+  CREATE_DEPOSIT: 'createDeposit'
+};
 
 
 // Add headers
@@ -176,11 +187,11 @@ const getGasPrice = () => {
           
           gasPrice = web3.utils.fromWei(result, "gwei");
           console.log('gasPrice  ', gasPrice + 'gwei');
-          if (gasPrice >= 30) result *= 1.25;
-          else if (gasPrice >= 20) result *= 1.2;
-          else if (gasPrice >= 10) result *= 1.15;
-          else if (gasPrice >= 3) result *= 1.12;
-          else result *= 1.11;
+          if (gasPrice >= 30) result *= gasPricePromote.GT_30;
+          else if (gasPrice >= 20) result *= gasPricePromote.GT_20;
+          else if (gasPrice >= 10) result *= gasPricePromote.GT_10;
+          else if (gasPrice >= 3) result *= gasPricePromote.GT_3;
+          else result *= COEF_GAS_PRICE_DEFAULT;
           
           resolve(web3.utils.toHex(Math.round(result)));
         }
@@ -191,6 +202,56 @@ const getGasPrice = () => {
     console.log("catch error when getGasPrice");
     return new Promise.reject(err);
   });
+};
+
+const txReplaceRecs = new Map();
+
+let retrySendTransaction = (rawTx, origTxHash) => {
+  let newRawTx = rawTx;
+  let currTxHash = origTxHash;
+  let prevTxHash = origTxHash;
+  const handle = setInterval(() => {
+    newRawTx.gasPrice *= gasPricePromote.GT_10;
+    let tx = new Tx(newRawTx);
+  
+    // 解决 RangeError: private key length is invalid
+    tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
+    let serializedTx = tx.serialize();
+
+    web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+    .on('transactionHash', (hash) => {
+      console.log('TX hash: ', hash);
+      txReplaceRecs.set(currTxHash, hash);
+      prevTxHash = currTxHash;
+      currTxHash = hash;
+    })
+    .on('receipt', (receipt) => {
+      console.log('retry transaction succeed at ', receipt.transactionHash);
+      txReplaceRecs.set(prevTxHash, receipt.transactionHash);
+      console.log('get receipt after retry sending transaction: ', receipt);
+      clearInterval(handle);
+    })
+    .on('error', (err, receipt) => {
+      console.error('catch an error after sendTransaction... ', err);
+      if (err) {
+        if (receipt && receipt.status) {
+          console.log('the retry tx has already got the receipt: ', receipt);
+          txReplaceRecs.set(prevTxHash, receipt.transactionHash);
+          clearInterval(handle);
+        }
+        if (err.message.includes('not mined within')) {
+          console.log("retry tx met error of not mined within 50 blocks or 750 seconds...");        
+        } else if (err.message.includes('out of gas')) {
+          console.error("account doesn't have enough gas or TX has been reverted...");
+          clearInterval(handle);
+          throw err;
+          // console.log('TX receipt, ', receipt);
+        } else {
+          console.error('retry tx met other exceptions...');
+        }
+      }
+    });
+  }, 300000);
 };
 
 // 给tx签名，并且发送上链
@@ -207,7 +268,7 @@ const sendTransaction = (rawTx, txType) => {
       let res = receipt;
       res.gasPrice = rawTx.gasPrice;
       return res;
-    }
+    };
 
     // 签好的tx发送到链上
     let txHash;
@@ -215,7 +276,9 @@ const sendTransaction = (rawTx, txType) => {
     .on('transactionHash', (hash) => {
       txHash = hash;
       console.log('TX hash: ', hash);
-      if (txType == 'withdraw') return resolve(txHash); // only for withdraw transaction
+      if (txType == transactionType.WITHDRAW || txType == transactionType.CREATE_DEPOSIT) {
+        return resolve(txHash); // maybe there are other type of transaction not need this
+      }
     })
     .on('receipt', (receipt) => {
       console.log('get receipt after send transaction: ', receipt);
@@ -226,13 +289,14 @@ const sendTransaction = (rawTx, txType) => {
     .on('error', (err, receipt) => {
       console.error('catch an error after sendTransaction... ', err);
       if (err) {
-        if (err.message.includes('not mined within 50 blocks') 
-            || err.message.includes('not mined within750 seconds')) {
+        if (receipt && receipt.status) {
+          console.log('the real tx has already got the receipt: ', receipt);
+          if (txType == 'normal') return resolve(finalReceipt(receipt));
+        }
+        // if (err.message.includes('not mined within 50 blocks') 
+        //     || err.message.includes('not mined within750 seconds')) {
+        if (err.message.includes('not mined within')) {
           console.log("met error of not mined within 50 blocks or 750 seconds...");
-          if (receipt) {
-            console.log('the real tx has already got the receipt: ', receipt);
-            if (txType == 'normal') return resolve(finalReceipt(receipt));
-          }
 
           // keep trying to get TX receipt
           let iCount = 0;
@@ -245,10 +309,11 @@ const sendTransaction = (rawTx, txType) => {
                 clearInterval(handle);
                 if (txType == 'normal') return resolve(finalReceipt(resp));
               }
-              if (iCount > 3600) {
-                console.log('has checked if TX had been mined for 300 minutes...');
+              if (iCount >= 60) {
+                console.log('has checked if TX had been mined for 5 minutes...');
                 clearInterval(handle); // not check any more after 300 minutes
-                throw('Tx had not been mined for more than 5 hours...');
+                // throw('Tx had not been mined for more than 5 minutes...');
+                retrySendTransaction(rawTx, txHash);
               }
             })
             .catch(err => {
@@ -265,6 +330,9 @@ const sendTransaction = (rawTx, txType) => {
         } else if (err.message.includes('out of gas')) {
           console.error("account doesn't have enough gas or TX has been reverted...");
           // console.log('TX receipt, ', receipt);
+        } else {
+          console.log('met other exceptions when send transaction...');
+          retrySendTransaction(rawTx, txHash);
         }
 
         reject(err);
@@ -450,14 +518,23 @@ var Actions = {
         const returnResult = (result, returnObject, dataObject) => {
           // 新return对象，作为http请求的返回值
           returnObject = responceData.createDepositAddrSuccess;
-          returnObject.txHash = result.transactionHash;
-          returnObject.gasUsed = result.gasUsed;
-          returnObject.gasPrice = result.gasPrice;
+          if (result.transactionHash) {
+            returnObject.txHash = result.transactionHash;
+            returnObject.gasUsed = result.gasUsed;
+            returnObject.gasPrice = result.gasPrice;
 
-          logObject = result.logs[0];
-          console.log(logObject);
+            logObject = result.logs[0];
+            console.log(logObject);
           
-          returnObject.depositAddr = web3.utils.numberToHex(web3.utils.hexToNumberString(logObject.data));
+            returnObject.depositAddr = web3.utils.numberToHex(web3.utils.hexToNumberString(logObject.data));
+          } else {
+            returnObject.txHash = result;
+            returnObject.gasPrice = 0;
+            returnObject.gasUsed = 0;
+            returnObject.depositAddr = ADDR_ZERO;
+          }
+
+          console.log('create deposit address final return object: ', returnObject);
           // 返回success 附带message
           dataObject.res.end(JSON.stringify(returnObject));
           // 重置
@@ -466,7 +543,7 @@ var Actions = {
           // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
         }
   
-        TxExecution(encodeData, returnResult, dataObject);       
+        TxExecution(encodeData, returnResult, dataObject, transactionType.CREATE_DEPOSIT);       
       }
     })
     .catch(e => {
@@ -725,7 +802,14 @@ var Actions = {
 
       const getTxsBlockNumbers = async (returnOneObject, queryObj) => {
         returnOneObject.blockNumber = await getBlockNum(queryObj.txHash);
+        let replHash = txReplaceRecs.get(queryObj.txHash);
+        if (replHash) {
+          returnOneObject.replacedTxHash = replHash;
+        } else {
+          returnOneObject.replacedTxHash = null;
+        }
         console.log('get block nubmer is: ', returnOneObject.blockNumber);
+        console.log('replaced Tx hash is: ', returnOneObject.replacedTxHash);
       }
 
       var promises = returnObject.records.map((record, ind) => {      
@@ -1102,7 +1186,7 @@ var Actions = {
 
           // console.log("data Object outside is ", dataObject);
 
-          TxExecution(encodeData, processResult, dataObject, 'withdraw');
+          TxExecution(encodeData, processResult, dataObject, transactionType.WITHDRAW);
         }
       })
       .catch(e => {
