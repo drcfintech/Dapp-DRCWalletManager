@@ -476,7 +476,7 @@ var Actions = {
       var bindTk = web3.utils.toHex(result);
       console.log(bindTk);
 
-     if (bindTk == ADDR_ZERO) {
+      if (bindTk == ADDR_ZERO) {
         // 拿到rawTx里面的data部分
         console.log(DRCToken_contractAT);
         let encodeData_param = web3.eth.abi.encodeParameters(
@@ -506,7 +506,17 @@ var Actions = {
         };
   
         TxExecution(encodeData, processResult);
-     }
+      }
+    })
+    .catch(e => {
+      if (e) {
+        console.log('program error', e);
+        // 重置
+        // returnObject = {};
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+        return;
+      }   
     });    
   },
 
@@ -640,6 +650,14 @@ var Actions = {
         }
 
         return;
+      })
+      .catch(err => {
+        console.log('met error get ethereum status: ', err);
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.evmError));
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+        return;
       });
   },
 
@@ -751,6 +769,7 @@ var Actions = {
         toBlock: "latest"
       }, (err, events) => {
         if (err) {
+          console.log('catch error after getting past events...', err);
           // 返回failed 附带message
           dataObject.res.end(JSON.stringify(responceData.evmError));
           // 保存log
@@ -781,9 +800,18 @@ var Actions = {
         returnObject = {};
         // 保存log
         // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashSuccess);        
+      })
+      .catch(err => {
+        console.log('met error when getting past events: ', err);
+        // 返回failed 附带message
+        dataObject.res.end(JSON.stringify(responceData.evmError));
+        // 保存log
+        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
+        return;
       });
     })
     .catch(err => {
+      console.log('met error when getting block: ', err);
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.evmError));
       // 保存log
