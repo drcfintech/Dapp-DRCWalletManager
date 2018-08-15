@@ -1,7 +1,7 @@
 {
-  "name": "trufflenodeserver_v1",
+  "name": "DRCWalletManager",
   "version": "1.0.0",
-  "description": "",
+  "description": "The application server for wallet managing of DRC platform",
   "main": "server.js",
   "directories": {
     "test": "test"
@@ -11,18 +11,19 @@
     "bluebird": "^3.5.1",
     "cron": "^1.3.0",
     "crypto": "^1.0.1",
-    "ethereumjs-tx": "^1.3.5",
+    "ethereumjs-tx": "^1.3.7",
     "ethereumjs-util": "^5.2.0",
     "event-stream": "^3.3.4",
-    "node-rsa": "^1.0.0",
+    "koa": "^2.5.2",
+    "node-rsa": "^1.0.1",
     "nodemailer": "^4.6.7",
-    "nodemon": "^1.17.5",
+    "nodemon": "^1.18.3",
+    "openzeppelin-solidity": "^1.12.0",
     "promise": "^8.0.1",
     "querystring": "^0.2.0",
     "truffle-contract": "^3.0.5",
-    "truffle-hdwallet-provider": "0.0.5",
-    "web3": "^1.0.0-beta.34",
-    "zeppelin-solidity": "^1.10.0"
+    "truffle-hdwallet-provider": "0.0.6",
+    "web3": "^1.0.0-beta.35"
   },
   "devDependencies": {},
   "scripts": {
