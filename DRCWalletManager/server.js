@@ -545,13 +545,13 @@ var Actions = {
 
       console.log(' 充值地址查询结果   \n', result);
       console.log(' 充值地址详细查询结果   \n', result['0']);
-      // 返回值显示已经有该hash的记录
+      // get the numberstring to compare
       var resultValue = web3.utils.hexToNumberString(result);
       console.log(resultValue);
       if (resultValue != "0") {
         let returnObject = {};
         returnObject = responceData.createDepositAddrSuccess;
-        returnObject.txHash = 0;
+        returnObject.txHash = '0'; // to compatible with other tx hash value
         returnObject.gasPrice = 0;
         returnObject.gasUsed = 0;
         returnObject.depositAddr = result;
