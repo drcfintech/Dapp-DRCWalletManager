@@ -1,15 +1,16 @@
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
+import 'openzeppelin-solidity/contracts/ownership/DelayedClaimable.sol';
 
 // interface iContract {
 //     function transferOwnership(address _newOwner) external;
 //     function owner() external view returns (address);
 // }
 
-contract OwnerContract is Claimable {
+contract OwnerContract is DelayedClaimable {
     Claimable public ownedContract;
-    address internal origOwner;
+    address public pendingOwnedOwner;
+    // address internal origOwner;
 
     /**
      * @dev bind a contract as its owner
@@ -19,7 +20,7 @@ contract OwnerContract is Claimable {
     function bindContract(address _contract) onlyOwner public returns (bool) {
         require(_contract != address(0));
         ownedContract = Claimable(_contract);
-        origOwner = ownedContract.owner();
+        // origOwner = ownedContract.owner();
 
         // take ownership of the owned contract
         ownedContract.claimOwnership();
@@ -31,11 +32,11 @@ contract OwnerContract is Claimable {
      * @dev change the owner of the contract from this contract address to the original one. 
      *
      */
-    function transferOwnershipBack() onlyOwner public {
-        ownedContract.transferOwnership(origOwner);
-        ownedContract = Claimable(address(0));
-        origOwner = address(0);
-    }
+    // function transferOwnershipBack() onlyOwner public {
+    //     ownedContract.transferOwnership(origOwner);
+    //     ownedContract = Claimable(address(0));
+    //     origOwner = address(0);
+    // }
 
     /**
      * @dev change the owner of the contract from this contract address to another one. 
@@ -43,8 +44,33 @@ contract OwnerContract is Claimable {
      * @param _nextOwner the contract address that will be next Owner of the original Contract
      */
     function changeOwnershipto(address _nextOwner)  onlyOwner public {
-        ownedContract.transferOwnership(_nextOwner);
-        ownedContract = Claimable(address(0));
-        origOwner = address(0);
+        require(ownedContract != address(0));
+
+        if (ownedContract.owner() != pendingOwnedOwner) {
+            ownedContract.transferOwnership(_nextOwner);
+            pendingOwnedOwner = _nextOwner;
+            // ownedContract = Claimable(address(0));
+            // origOwner = address(0);
+        } else {
+            // the pending owner has already taken the ownership
+            ownedContract = Claimable(address(0));
+            pendingOwnedOwner = address(0);
+        }
     }
+
+    /**
+     * @dev to confirm the owner of the owned contract has already been transferred. 
+     *
+     */
+    function ownedOwnershipTransferred() onlyOwner public returns (bool) {
+        require(ownedContract != address(0));
+        if (ownedContract.owner() == pendingOwnedOwner) {
+            // the pending owner has already taken the ownership  
+            ownedContract = Claimable(address(0));
+            pendingOwnedOwner = address(0);
+            return true;
+        } else {
+            return false;
+        }
+    } 
 }
