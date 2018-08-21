@@ -94,8 +94,10 @@ contract DRCWalletStorage is OwnerContract {
      * @param _value the amount that the balance will be increased
 	 */
     function increaseBalance(address _deposit, uint256 _value) public returns (bool) {
-        require(_deposit != address(0));
-        depositRepos[_deposit].balance = depositRepos[_deposit].balance.add(_value);
+        // require(_deposit != address(0));
+        require (walletsNumber(_deposit) > 0);
+        uint256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance.add(_value);
         return true;
     }
 
@@ -106,8 +108,10 @@ contract DRCWalletStorage is OwnerContract {
      * @param _value the amount that the balance will be decreased
 	 */
     function decreaseBalance(address _deposit, uint256 _value) public returns (bool) {
-        require(_deposit != address(0));
-        depositRepos[_deposit].balance = depositRepos[_deposit].balance.sub(_value);
+        // require(_deposit != address(0));
+        require (walletsNumber(_deposit) > 0);
+        uint256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance.sub(_value);
         return true;
     }
 
@@ -163,14 +167,22 @@ contract DRCWalletStorage is OwnerContract {
 	 */
     function freezeTokens(address _deposit, bool _freeze, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
-        require(_value <= balanceOf(_deposit));
+        // require(_value <= balanceOf(_deposit));
         
         frozenDeposits[_deposit] = _freeze;
+        uint256 _frozen = depositRepos[_deposit].frozen;
+        uint256 _balance = depositRepos[_deposit].balance;
+        uint256 freezeAble = _balance.sub(_frozen);
         if (_freeze) {
-            depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.add(_value);
+            if (_value > freezeAble) {
+                _value = freezeAble;
+            }
+            depositRepos[_deposit].frozen = _frozen.add(_value);
         } else {
-            require(_value <= depositRepos[_deposit].frozen);
-            depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.sub(_value);
+            if (_value > _frozen) {
+                _value = _frozen;
+            }
+            depositRepos[_deposit].frozen = _frozen.sub(_value);
         }
 
         return true;

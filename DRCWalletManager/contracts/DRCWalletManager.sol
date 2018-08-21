@@ -118,7 +118,7 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
 	 */
     function getDepositInfo(address _deposit) onlyOwner public view returns (uint256, uint256) {
         require(_deposit != address(0));
-        uint256 _balance = tk.balanceOf(_deposit);
+        uint256 _balance = walletStorage.balanceOf(_deposit);
         // uint256 frozenAmount = depositRepos[_deposit].frozen;
         uint256 frozenAmount = walletStorage.frozenAmount(_deposit);
         // depositRepos[_deposit].balance = _balance;
@@ -216,13 +216,14 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      * @param _deposit the deposit address
      * @param _time the timestamp the withdraw occurs
      * @param _value the amount of tokens need to be frozen
+     * @param _check if we will check the value is valid or meet the limit condition
 	 */
-    function withdrawWithFee(address _deposit, uint256 _time, uint256 _value) onlyOwner public returns (bool) {    
+    function withdrawWithFee(address _deposit, uint256 _time, uint256 _value, bool _check) onlyOwner public returns (bool) {    
         // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         // return withdrawWithFee(_deposit, _time, withdrawWalletList[0].name, withdrawWalletList[0].walletAddr, _value, _check);
         bytes32 defaultWalletName = walletStorage.walletName(_deposit, 0);
         address defaultWallet = walletStorage.wallet(_deposit, 0);
-        return withdrawWithFee(_deposit, _time, defaultWalletName, defaultWallet, _value);
+        return withdrawWithFee(_deposit, _time, defaultWalletName, defaultWallet, _value, _check);
     }
     
     /**
@@ -286,30 +287,26 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
 	 * @param _name the withdraw address alias name to verify
      * @param _to the address the token will be transfer to 
      * @param _value the token transferred value
-     * param _check if we will check the value is valid or meet the limit condition
+     * @param _check if we will check the value is valid or meet the limit condition
 	 */
     function withdrawWithFee(address _deposit, 
                              uint256 _time, 
                              bytes32 _name, 
                              address _to, 
-                             uint256 _value) onlyOwner public returns (bool) {
+                             uint256 _value,
+                             bool _check) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_to != address(0));
 
         uint256 totalBalance = walletStorage.balanceOf(_deposit);
         uint256 frozen = walletStorage.frozenAmount(_deposit);
-        uint256 available = totalBalance.sub(frozen);
-        require(_value <= available);
+        // uint256 available = totalBalance.sub(frozen);
+        // require(_value <= available);
+        if (_check) {
+            require(_value <= totalBalance.sub(frozen));
+        }
 
         uint256 _balance = tk.balanceOf(_deposit);
-        // if (_check) {
-        //     require(_value <= _balance);
-        // }
-
-        // uint256 available = _balance.sub(depositRepos[_deposit].frozen);
-        // if (_check) {
-        //     require(_value <= available);
-        // }
 
         bool exist;
         bool correct;
@@ -329,7 +326,7 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         /**
          * if deposit address doesn't have enough tokens to withdraw, 
-         * then withdraw from this contract. Record in independent deposit contract.
+         * then withdraw from this contract. Record this in the independent deposit contract.
          */
         if (_value > _balance) {
             require(deposWithdr.checkWithdrawAmount(address(params), _value, _time));
@@ -342,6 +339,22 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         }  
 
         return walletStorage.decreaseBalance(_deposit, _value);  
+    }
+
+    /**
+	 * @dev destory the old depoist contract and take back the tokens
+     *
+     * @param _deposit the deposit address
+	 */
+    function destroyDepositContract(address _deposit) onlyOwner public returns (bool) {
+        require(_deposit != address(0));
+
+        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(tk);
+        deposWithdr.destroy(tokens);
+
+        return walletStorage.removeDeposit(_deposit);
     }
 
 }

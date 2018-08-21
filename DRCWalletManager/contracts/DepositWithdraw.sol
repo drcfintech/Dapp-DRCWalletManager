@@ -13,7 +13,7 @@ import './DRCWalletMgrParamsInterface.sol';
 /**
  * contract that can deposit and withdraw tokens
  */
-contract DepositWithdraw is Claimable, Withdrawable {
+contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
     using SafeMath for uint256;
 
     /**
