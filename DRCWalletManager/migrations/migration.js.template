@@ -1,5 +1,8 @@
+var Migrations = artifacts.require("./Migrations.sol");
 var DRCWalletMgrCon = artifacts.require("./DRCWalletManager.sol");
 var DRCWalletStorage = artifacts.require("./DRCWalletStorage.sol");
+// var deployParams = require('../utils/prepare_deploy.js');
+// deployParams.get(Migrations);
 
 const Web3 = require("web3");
 const Promise = require("bluebird");
@@ -35,18 +38,19 @@ const getGasLimit = callObject => {
   return new Promise((resolve, reject) => {
     const handle = setInterval(() => {
       web3.eth.estimateGas(callObject, (error, result) => {
-        if (error /*&& !error.message.includes('gas required exceeds allowance')*/ ) {
+        if (error && !error.message.includes('gas required exceeds allowance')) {
           clearInterval(handle);
           reject(error);
         }
         //resolve(web3.utils.toHex(result));
-        if (result) {
-          clearInterval(handle);
-          console.log("estimated gasLimit  ", result);
-          var finalResult = Math.round(result * 1.1);
-          if (finalResult > 6700000) finalResult = 6700000;
-          resolve(finalResult);
-        }
+        // if (result) {
+        clearInterval(handle);
+        console.log("estimated gasLimit  ", result);
+        if (!result) result = 6700000;
+        var finalResult = Math.round(result * 1.1);
+        if (finalResult > 6700000) finalResult = 6700000;
+        resolve(finalResult);
+        // }
       });
     }, 5000);
   }).catch(err => {
@@ -72,10 +76,10 @@ let deployContract = (contract, deployer) => {
         .deploy(contract, {
           gas: realGasLimit, //'6700000',
           gasPrice: web3.utils.toWei(realPrice.toString(), "gwei")
+        })
+        .then(instance => {
+          console.log(instance);
         });
-      // .then(instance => {
-      //   console.log(instance);
-      // });
     })
     .catch(e => {
       if (e) {
@@ -90,7 +94,32 @@ function sleep(time) {
 }
 
 module.exports = function (deployer) {
-  deployContract(DRCWalletMgrCon, deployer);
+  // deployer.then(() => {
+  deployContract(Migrations, deployer);
+  // let iCount = 0;
+  // const handle = setInterval(() => {
+  //   iCount++;
+  //   console.log('iCount: ', iCount);
+  //   if (iCount > 5) {
+  //     clearInterval(handle);
+  //   }
+  // }, 5000);
+  // })
+  // .then(() => {
   sleep(600000);
+  deployContract(DRCWalletMgrCon, deployer);
   deployContract(DRCWalletStorage, deployer);
+  // });
+
+  // deployer.then(() => {
+  //   let iCount = 0;
+  //   const handle = setInterval(() => {
+  //     iCount++;
+  //     console.log('iCount: ', iCount);
+  //     if (iCount > 4) {
+  //       clearInterval(handle);
+  //     }
+  //   }, 5000);
+  //   deployContract(DRCWalletStorage, deployer);
+  // });
 };
