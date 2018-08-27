@@ -941,12 +941,7 @@ var Actions = {
               return;
             }
             if (events.length == 0) {
-              console.log('cannot get the correct events list...');
-              // 返回failed 附带message
-              dataObject.res.end(JSON.stringify(responceData.programError));
-              // 保存log
-              // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, responceData.selectHashFailed);
-              return;
+              console.log('get empty events list...');
             }
             console.log(events);
           })
