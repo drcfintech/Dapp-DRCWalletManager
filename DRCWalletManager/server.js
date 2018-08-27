@@ -571,39 +571,39 @@ var Actions = {
 
           TxExecution(DRCWalletStorage_contractAT, encodeData_2, processResult);
 
-          DRCWalletStorageContract.methods.pendingOwner().call()
-            .then(result => {
-              var pending = web3.utils.toHex(result);
-              console.log(pending);
+          const handle = setInterval(() => {
+            DRCWalletStorageContract.methods.pendingOwner().call()
+              .then(result => {
+                var pending = web3.utils.toHex(result);
+                console.log(pending);
 
-              const handle = setInterval(() => {
                 if (pending != contractAT) {
                   console.log('pending owner is still not ', contractAT);
                 } else {
                   clearInterval(handle);
                   console.log('now pending owner is ', pending);
+
+                  let encodeData_param_3 = web3.eth.abi.encodeParameters(
+                    ['address'], [DRCWalletStorage_contractAT]
+                  );
+                  console.log(encodeData_param_3);
+                  let encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
+                  console.log(encodeData_function_3);
+                  let encodeData_3 = encodeData_function_3 + encodeData_param_3.slice(2);
+                  console.log(encodeData_3);
+
+                  TxExecution(contractAT, encodeData_3, processResult);
                 }
-              }, 15000);
-
-              let encodeData_param_3 = web3.eth.abi.encodeParameters(
-                ['address'], [DRCWalletStorage_contractAT]
-              );
-              console.log(encodeData_param_3);
-              let encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
-              console.log(encodeData_function_3);
-              let encodeData_3 = encodeData_function_3 + encodeData_param_3.slice(2);
-              console.log(encodeData_3);
-
-              TxExecution(contractAT, encodeData_3, processResult);
-            })
-            .catch(e => {
-              if (e) {
-                console.log('program error', e);
-                // 保存log
-                // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-                return;
-              }
-            });
+              })
+              .catch(e => {
+                if (e) {
+                  console.log('program error', e);
+                  // 保存log
+                  // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+                  return;
+                }
+              });
+          }, 15000);
         }
       })
       .catch(e => {
