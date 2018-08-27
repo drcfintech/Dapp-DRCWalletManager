@@ -23,7 +23,9 @@ contract OwnerContract is DelayedClaimable {
         // origOwner = ownedContract.owner();
 
         // take ownership of the owned contract
-        ownedContract.claimOwnership();
+        if (ownedContract.owner() != address(this)) {
+            ownedContract.claimOwnership();
+        }
 
         return true;
     }

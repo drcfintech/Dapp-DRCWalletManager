@@ -2,13 +2,13 @@ pragma solidity ^0.4.23;
 
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import './OwnerContract.sol';
+import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
 
 
 /**
  * contract that manage the wallet operations on DRC platform
  */
-contract DRCWalletStorage is OwnerContract {
+contract DRCWalletStorage is Claimable {
     using SafeMath for uint256;
     
     /**
@@ -93,7 +93,7 @@ contract DRCWalletStorage is OwnerContract {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be increased
 	 */
-    function increaseBalance(address _deposit, uint256 _value) public returns (bool) {
+    function increaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         uint256 _balance = depositRepos[_deposit].balance;
@@ -107,7 +107,7 @@ contract DRCWalletStorage is OwnerContract {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be decreased
 	 */
-    function decreaseBalance(address _deposit, uint256 _value) public returns (bool) {
+    function decreaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         uint256 _balance = depositRepos[_deposit].balance;
