@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 library SafeMath {
 
@@ -132,106 +132,7 @@ contract Claimable is Ownable {
   }
 }
 
-contract DelayedClaimable is Claimable {
-
-  uint256 public end;
-  uint256 public start;
-
-  /**
-   * @dev Used to specify the time period during which a pending
-   * owner can claim ownership.
-   * @param _start The earliest time ownership can be claimed.
-   * @param _end The latest time ownership can be claimed.
-   */
-  function setLimits(uint256 _start, uint256 _end) public onlyOwner {
-    require(_start <= _end);
-    end = _end;
-    start = _start;
-  }
-
-  /**
-   * @dev Allows the pendingOwner address to finalize the transfer, as long as it is called within
-   * the specified start and end time.
-   */
-  function claimOwnership() public onlyPendingOwner {
-    require((block.number <= end) && (block.number >= start));
-    emit OwnershipTransferred(owner, pendingOwner);
-    owner = pendingOwner;
-    pendingOwner = address(0);
-    end = 0;
-  }
-
-}
-
-contract OwnerContract is DelayedClaimable {
-    Claimable public ownedContract;
-    address public pendingOwnedOwner;
-    // address internal origOwner;
-
-    /**
-     * @dev bind a contract as its owner
-     *
-     * @param _contract the contract address that will be binded by this Owner Contract
-     */
-    function bindContract(address _contract) onlyOwner public returns (bool) {
-        require(_contract != address(0));
-        ownedContract = Claimable(_contract);
-        // origOwner = ownedContract.owner();
-
-        // take ownership of the owned contract
-        ownedContract.claimOwnership();
-
-        return true;
-    }
-
-    /**
-     * @dev change the owner of the contract from this contract address to the original one. 
-     *
-     */
-    // function transferOwnershipBack() onlyOwner public {
-    //     ownedContract.transferOwnership(origOwner);
-    //     ownedContract = Claimable(address(0));
-    //     origOwner = address(0);
-    // }
-
-    /**
-     * @dev change the owner of the contract from this contract address to another one. 
-     *
-     * @param _nextOwner the contract address that will be next Owner of the original Contract
-     */
-    function changeOwnershipto(address _nextOwner)  onlyOwner public {
-        require(ownedContract != address(0));
-
-        if (ownedContract.owner() != pendingOwnedOwner) {
-            ownedContract.transferOwnership(_nextOwner);
-            pendingOwnedOwner = _nextOwner;
-            // ownedContract = Claimable(address(0));
-            // origOwner = address(0);
-        } else {
-            // the pending owner has already taken the ownership
-            ownedContract = Claimable(address(0));
-            pendingOwnedOwner = address(0);
-        }
-    }
-
-    /**
-     * @dev to confirm the owner of the owned contract has already been transferred. 
-     *
-     */
-    function ownedOwnershipTransferred() onlyOwner public returns (bool) {
-        require(ownedContract != address(0));
-        if (ownedContract.owner() == pendingOwnedOwner) {
-            // the pending owner has already taken the ownership  
-            ownedContract = Claimable(address(0));
-            pendingOwnedOwner = address(0);
-            return true;
-        } else {
-            return false;
-        }
-    } 
-}
-
-contract DRCWalletStorage is OwnerContract {
+contract DRCWalletStorage is Claimable {
     using SafeMath for uint256;
     
     /**
@@ -316,7 +217,7 @@ contract DRCWalletStorage is OwnerContract {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be increased
 	 */
-    function increaseBalance(address _deposit, uint256 _value) public returns (bool) {
+    function increaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         uint256 _balance = depositRepos[_deposit].balance;
@@ -330,7 +231,7 @@ contract DRCWalletStorage is OwnerContract {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be decreased
 	 */
-    function decreaseBalance(address _deposit, uint256 _value) public returns (bool) {
+    function decreaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         uint256 _balance = depositRepos[_deposit].balance;

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 interface IDRCWalletMgrParams {
     function singleWithdrawMin() external returns (uint256); // min value of single withdraw
@@ -549,7 +549,9 @@ contract OwnerContract is DelayedClaimable {
         // origOwner = ownedContract.owner();
 
         // take ownership of the owned contract
-        ownedContract.claimOwnership();
+        if (ownedContract.owner() != address(this)) {
+            ownedContract.claimOwnership();
+        }
 
         return true;
     }
