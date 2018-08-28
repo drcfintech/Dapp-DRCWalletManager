@@ -616,7 +616,7 @@ var Actions = {
                   console.log(encodeData_param_4);
                   let encodeData_function_4 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
                   console.log(encodeData_function_4);
-                  let encodeData_4 = encodeData_function_4 + encodeData_param_3.slice(2);
+                  let encodeData_4 = encodeData_function_4 + encodeData_param_4.slice(2);
                   console.log(encodeData_4);
 
                   TxExecution(contractAT, encodeData_4, processResult);
