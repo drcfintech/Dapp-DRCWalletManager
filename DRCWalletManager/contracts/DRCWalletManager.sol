@@ -92,10 +92,13 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
 	 * @dev deposit a value of funds to the deposit address
      *
      * @param _deposit the deposit address
+     * @param _increase increase or decrease the value
      * @param _value the deposit funds value
 	 */
-    function doDeposit(address _deposit, uint256 _value) onlyOwner public returns (bool) {
-        return walletStorage.increaseBalance(_deposit, _value);
+    function doDeposit(address _deposit, bool _increase, uint256 _value) onlyOwner public returns (bool) {
+        return (_increase 
+                ? walletStorage.increaseBalance(_deposit, _value) 
+                : walletStorage.decreaseBalance(_deposit, _value));
     }
     
     /**
