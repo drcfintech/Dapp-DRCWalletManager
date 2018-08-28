@@ -761,12 +761,13 @@ var Actions = {
         }
         console.log("real deposit value is ", realValue(requestObject.value));
         let encodeData_params = web3.eth.abi.encodeParameters(
-          ['address', 'uint256'], [requestObject.depositAddress.slice(2),
+          ['address', 'bool', 'uint256'], [requestObject.depositAddress.slice(2),
+            requestObject.increase,
             realValue(requestObject.value)
           ]
         );
         console.log(encodeData_params);
-        let encodeData_function = web3.eth.abi.encodeFunctionSignature('doDeposit(address,uint256)');
+        let encodeData_function = web3.eth.abi.encodeFunctionSignature('doDeposit(address,bool,uint256)');
         console.log(encodeData_function);
         let encodeData = encodeData_function + encodeData_params.slice(2);
         console.log(encodeData);
@@ -840,8 +841,8 @@ var Actions = {
 
     Promise.all([getGasPrice()])
       .then(values => {
-        gasPrice = web3.utils.fromWei(values[0], "gwei");
-        console.log('current gasPrice: ', gasPrice);
+        console.log('current gasPrice: ', values[0] + 'gwei');
+        let gasPrice = web3.utils.fromWei(values[0].toString(), "gwei");
 
         // if current gas price is too high, then cancel the transaction
         if (gasPrice > SAFE_GAS_PRICE) {
@@ -1634,10 +1635,11 @@ app.post("/withdraw", function (req, res) {　
 let lastDid;
 app.post("/doDeposit", function (req, res) {　
   if (qs.hash) {
-    console.log('/withdraw info: ', qs.hash);
+    console.log('/doDeposit info: ', qs.hash);
     qs = JSON.parse(qs.hash);
   }　
   console.log('/deposit to ', qs.depositAddress);
+  console.log('/increase or not ', qs.increase);
   console.log('/deposit value ', qs.value);
   console.log('/deposit id: ', qs.did);
 
