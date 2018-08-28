@@ -103,6 +103,69 @@ contract Ownable {
   }
 }
 
+contract Withdrawable is Ownable {
+    event ReceiveEther(address _from, uint256 _value);
+    event WithdrawEther(address _to, uint256 _value);
+    event WithdrawToken(address _token, address _to, uint256 _value);
+
+    /**
+	 * @dev recording receiving ether from msn.sender
+	 */
+    function () payable public {
+        emit ReceiveEther(msg.sender, msg.value);
+    }
+
+    /**
+	 * @dev withdraw,send ether to target
+	 * @param _to is where the ether will be sent to
+	 *        _amount is the number of the ether
+	 */
+    function withdraw(address _to, uint _amount) public onlyOwner returns (bool) {
+        require(_to != address(0));
+        _to.transfer(_amount);
+        emit WithdrawEther(_to, _amount);
+
+        return true;
+    }
+
+    /**
+	 * @dev withdraw tokens, send tokens to target
+     *
+     * @param _token the token address that will be withdraw
+	 * @param _to is where the tokens will be sent to
+	 *        _value is the number of the token
+	 */
+    function withdrawToken(address _token, address _to, uint256 _value) public onlyOwner returns (bool) {
+        require(_to != address(0));
+        require(_token != address(0));
+
+        ERC20 tk = ERC20(_token);
+        tk.transfer(_to, _value);
+        emit WithdrawToken(_token, _to, _value);
+
+        return true;
+    }
+
+    /**
+     * @dev receive approval from an ERC20 token contract, and then gain the tokens, 
+     *      then take a record
+     *
+     * @param _from address The address which you want to send tokens from
+     * @param _value uint256 the amounts of tokens to be sent
+     * @param _token address the ERC20 token address
+     * @param _extraData bytes the extra data for the record
+     */
+    // function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public {
+    //     require(_token != address(0));
+    //     require(_from != address(0));
+        
+    //     ERC20 tk = ERC20(_token);
+    //     require(tk.transferFrom(_from, this, _value));
+        
+    //     emit ReceiveDeposit(_from, _value, _token, _extraData);
+    // }
+}
+
 contract Claimable is Ownable {
   address public pendingOwner;
 
@@ -132,7 +195,7 @@ contract Claimable is Ownable {
   }
 }
 
-contract DRCWalletStorage is Claimable {
+contract DRCWalletStorage is Withdrawable, Claimable {
     using SafeMath for uint256;
     
     /**
@@ -147,7 +210,7 @@ contract DRCWalletStorage is Claimable {
      * Deposit data storage
      */
     struct DepositRepository {
-        uint256 balance;
+        int256 balance; // can be negative
         uint256 frozen;
         WithdrawWallet[] withdrawWallets;
         // mapping (bytes32 => address) withdrawWallets;
@@ -172,7 +235,7 @@ contract DRCWalletStorage is Claimable {
         walletDeposits[_wallet] = _depositAddr;
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_depositAddr].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        // depositRepos[_deposit].balance = 0;
+        depositRepos[_depositAddr].balance = 0;
         depositRepos[_depositAddr].frozen = 0;
 
         size = size.add(1);
@@ -220,8 +283,8 @@ contract DRCWalletStorage is Claimable {
     function increaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
-        uint256 _balance = depositRepos[_deposit].balance;
-        depositRepos[_deposit].balance = _balance.add(_value);
+        int256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance + int256(_value);
         return true;
     }
 
@@ -234,8 +297,8 @@ contract DRCWalletStorage is Claimable {
     function decreaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
-        uint256 _balance = depositRepos[_deposit].balance;
-        depositRepos[_deposit].balance = _balance.sub(_value);
+        int256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance - int256(_value);
         return true;
     }
 
@@ -271,7 +334,8 @@ contract DRCWalletStorage is Claimable {
         require(_wallet != address(0));
       
         uint len = walletsNumber(_deposit);
-        for (uint i = 0; i < len; i = i.add(1)) {
+        // default wallet name do not change
+        for (uint i = 1; i < len; i = i.add(1)) {
             WithdrawWallet storage wallet = depositRepos[_deposit].withdrawWallets[i];            
             if (_wallet == wallet.walletAddr) {
                 wallet.name = _newName;
@@ -295,11 +359,12 @@ contract DRCWalletStorage is Claimable {
         
         frozenDeposits[_deposit] = _freeze;
         uint256 _frozen = depositRepos[_deposit].frozen;
-        uint256 _balance = depositRepos[_deposit].balance;
-        uint256 freezeAble = _balance.sub(_frozen);
+        int256 _balance = depositRepos[_deposit].balance;
+        int256 freezeAble = _balance - int256(_frozen);
+        freezeAble = freezeAble < 0 ? 0 : freezeAble;
         if (_freeze) {
-            if (_value > freezeAble) {
-                _value = freezeAble;
+            if (_value > uint256(freezeAble)) {
+                _value = uint256(freezeAble);
             }
             depositRepos[_deposit].frozen = _frozen.add(_value);
         } else {
@@ -355,7 +420,7 @@ contract DRCWalletStorage is Claimable {
      *
      * @param _deposit the deposit address
 	 */
-    function balanceOf(address _deposit) public view returns (uint256) {
+    function balanceOf(address _deposit) public view returns (int256) {
         require(_deposit != address(0));
         return depositRepos[_deposit].balance;
     }
@@ -369,5 +434,27 @@ contract DRCWalletStorage is Claimable {
         require(_deposit != address(0));
         return depositRepos[_deposit].frozen;
     }
+}
+
+contract ERC20Basic {
+  function totalSupply() public view returns (uint256);
+  function balanceOf(address _who) public view returns (uint256);
+  function transfer(address _to, uint256 _value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+contract ERC20 is ERC20Basic {
+  function allowance(address _owner, address _spender)
+    public view returns (uint256);
+
+  function transferFrom(address _from, address _to, uint256 _value)
+    public returns (bool);
+
+  function approve(address _spender, uint256 _value) public returns (bool);
+  event Approval(
+    address indexed owner,
+    address indexed spender,
+    uint256 value
+  );
 }
 

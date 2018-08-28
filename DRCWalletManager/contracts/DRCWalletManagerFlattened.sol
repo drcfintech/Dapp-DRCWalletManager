@@ -59,6 +59,9 @@ interface IDRCWalletStorage {
 
     // remove deposit contract address from storage
     function removeDeposit(address _depositAddr) external returns (bool);
+
+    // withdraw tokens from this contract
+    function withdrawToken(address _token, address _to, uint256 _value) external returns (bool);
 }
 
 library SafeMath {
@@ -862,10 +865,12 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         uint256 realAmount = _value.sub(fee);
         address tokenReturn = params.chargeFeePool();
         if (tokenReturn != address(0) && fee > 0) {
-            require(tk.transfer(tokenReturn, fee));
+            // require(tk.transfer(tokenReturn, fee));
+            require(walletStorage.withdrawToken(tk, tokenReturn, fee));
         }
 
-        require (tk.transfer(_to, realAmount));
+        // require (tk.transfer(_to, realAmount));
+        require(walletStorage.withdrawToken(tk, _to, realAmount));
         _deposWithdr.recordWithdraw(_time, _to, realAmount);
 
         return true;
