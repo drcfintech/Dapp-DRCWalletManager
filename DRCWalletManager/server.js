@@ -698,7 +698,7 @@ var Actions = {
             // log.saveLog(operation[0], new Date().toLocaleString(), qs.hash, gasPrice, result.gasUsed, responceData.createDepositAddrSuccess);
           }
 
-          TxExecution(encodeData, returnResult, dataObject, transactionType.CREATE_DEPOSIT);
+          TxExecution(contractAT, encodeData, returnResult, dataObject, transactionType.CREATE_DEPOSIT);
         }
       })
       .catch(e => {
@@ -809,7 +809,7 @@ var Actions = {
 
         // console.log("data Object outside is ", dataObject);
 
-        TxExecution(encodeData, processResult, dataObject, transactionType.NORMAL);
+        TxExecution(contractAT, encodeData, processResult, dataObject, transactionType.NORMAL);
       })
       .catch(e => {
         if (e) {
@@ -852,6 +852,7 @@ var Actions = {
           // 保存log
           // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, gasPrice, 0, responceData.evmError);
         } else {
+          console.log('EVM status is fine...');
           dataObject.res.end(JSON.stringify(responceData.ethStatusSuccess));
         }
 
@@ -1481,7 +1482,7 @@ var Actions = {
 
               // console.log("data Object outside is ", dataObject);
 
-              TxExecution(encodeData, processResult, dataObject, transactionType.WITHDRAW);
+              TxExecution(contractAT, encodeData, processResult, dataObject, transactionType.WITHDRAW);
             }
           })
           .catch(e => {
