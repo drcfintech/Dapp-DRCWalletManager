@@ -842,10 +842,10 @@ var Actions = {
     Promise.all([getGasPrice()])
       .then(values => {
         console.log('current gasPrice: ', values[0] + 'gwei');
-        let gasPrice = web3.utils.fromWei(values[0].toString(), "gwei");
+        // let gasPrice = web3.utils.toWei(values[0].toString(), "gwei");
 
         // if current gas price is too high, then cancel the transaction
-        if (gasPrice > SAFE_GAS_PRICE) {
+        if (values[0] > SAFE_GAS_PRICE) {
           dataObject.res.end(JSON.stringify(responceData.gasPriceTooHigh));
           // 重置
           // returnObject = {};
