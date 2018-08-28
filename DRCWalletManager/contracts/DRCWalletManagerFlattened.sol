@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 interface IDRCWalletMgrParams {
     function singleWithdrawMin() external returns (uint256); // min value of single withdraw
