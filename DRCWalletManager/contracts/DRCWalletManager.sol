@@ -273,10 +273,12 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         uint256 realAmount = _value.sub(fee);
         address tokenReturn = params.chargeFeePool();
         if (tokenReturn != address(0) && fee > 0) {
-            require(tk.transfer(tokenReturn, fee));
+            // require(tk.transfer(tokenReturn, fee));
+            require(walletStorage.withdrawToken(tk, tokenReturn, fee));
         }
 
-        require (tk.transfer(_to, realAmount));
+        // require (tk.transfer(_to, realAmount));
+        require(walletStorage.withdrawToken(tk, _to, realAmount));
         _deposWithdr.recordWithdraw(_time, _to, realAmount);
 
         return true;

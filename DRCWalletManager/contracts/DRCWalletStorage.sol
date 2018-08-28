@@ -3,12 +3,13 @@ pragma solidity ^0.4.23;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
+import './Withdrawable.sol';
 
 
 /**
  * contract that manage the wallet operations on DRC platform
  */
-contract DRCWalletStorage is Claimable {
+contract DRCWalletStorage is Withdrawable, Claimable {
     using SafeMath for uint256;
     
     /**
@@ -23,7 +24,7 @@ contract DRCWalletStorage is Claimable {
      * Deposit data storage
      */
     struct DepositRepository {
-        uint256 balance;
+        int256 balance; // can be negative
         uint256 frozen;
         WithdrawWallet[] withdrawWallets;
         // mapping (bytes32 => address) withdrawWallets;
@@ -48,7 +49,7 @@ contract DRCWalletStorage is Claimable {
         walletDeposits[_wallet] = _depositAddr;
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_depositAddr].withdrawWallets;
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        // depositRepos[_deposit].balance = 0;
+        depositRepos[_depositAddr].balance = 0;
         depositRepos[_depositAddr].frozen = 0;
 
         size = size.add(1);
@@ -96,8 +97,8 @@ contract DRCWalletStorage is Claimable {
     function increaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
-        uint256 _balance = depositRepos[_deposit].balance;
-        depositRepos[_deposit].balance = _balance.add(_value);
+        int256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance + int256(_value);
         return true;
     }
 
@@ -110,8 +111,8 @@ contract DRCWalletStorage is Claimable {
     function decreaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
-        uint256 _balance = depositRepos[_deposit].balance;
-        depositRepos[_deposit].balance = _balance.sub(_value);
+        int256 _balance = depositRepos[_deposit].balance;
+        depositRepos[_deposit].balance = _balance - int256(_value);
         return true;
     }
 
@@ -147,7 +148,8 @@ contract DRCWalletStorage is Claimable {
         require(_wallet != address(0));
       
         uint len = walletsNumber(_deposit);
-        for (uint i = 0; i < len; i = i.add(1)) {
+        // default wallet name do not change
+        for (uint i = 1; i < len; i = i.add(1)) {
             WithdrawWallet storage wallet = depositRepos[_deposit].withdrawWallets[i];            
             if (_wallet == wallet.walletAddr) {
                 wallet.name = _newName;
@@ -171,11 +173,12 @@ contract DRCWalletStorage is Claimable {
         
         frozenDeposits[_deposit] = _freeze;
         uint256 _frozen = depositRepos[_deposit].frozen;
-        uint256 _balance = depositRepos[_deposit].balance;
-        uint256 freezeAble = _balance.sub(_frozen);
+        int256 _balance = depositRepos[_deposit].balance;
+        int256 freezeAble = _balance - int256(_frozen);
+        freezeAble = freezeAble < 0 ? 0 : freezeAble;
         if (_freeze) {
-            if (_value > freezeAble) {
-                _value = freezeAble;
+            if (_value > uint256(freezeAble)) {
+                _value = uint256(freezeAble);
             }
             depositRepos[_deposit].frozen = _frozen.add(_value);
         } else {
@@ -231,7 +234,7 @@ contract DRCWalletStorage is Claimable {
      *
      * @param _deposit the deposit address
 	 */
-    function balanceOf(address _deposit) public view returns (uint256) {
+    function balanceOf(address _deposit) public view returns (int256) {
         require(_deposit != address(0));
         return depositRepos[_deposit].balance;
     }

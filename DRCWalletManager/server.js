@@ -564,12 +564,34 @@ var Actions = {
             ['address'], [contractAT]
           );
           console.log(encodeData_param_2);
-          let encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('transferOwnership(address)');
-          console.log(encodeData_function_2);
-          let encodeData_2 = encodeData_function_2 + encodeData_param_2.slice(2);
-          console.log(encodeData_2);
+          let encodeData_function_2;
+          let encodeData_function_3;
+          let calledContract;
+          DRCWalletStorageContract.methods.owner().call()
+            .then(result => {
+              if (result != account) {
+                calledContract = result;
+                encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('changeOwnershipto(address)');
+                encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('ownedOwnershipTransferred()');
+              } else {
+                calledContract = DRCWalletStorage_contractAT;
+                encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('transferOwnership(address)');
+              }
 
-          TxExecution(DRCWalletStorage_contractAT, encodeData_2, processResult);
+              console.log(encodeData_function_2);
+              let encodeData_2 = encodeData_function_2 + encodeData_param_2.slice(2);
+              console.log(encodeData_2);
+
+              TxExecution(calledContract, encodeData_2, processResult);
+            })
+            .catch(e => {
+              if (e) {
+                console.log('program error', e);
+                // 保存log
+                // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+                return;
+              }
+            });
 
           const handle = setInterval(() => {
             DRCWalletStorageContract.methods.pendingOwner().call()
@@ -583,16 +605,21 @@ var Actions = {
                   clearInterval(handle);
                   console.log('now pending owner is ', pending);
 
-                  let encodeData_param_3 = web3.eth.abi.encodeParameters(
+                  if (encodeData_function_3) {
+                    console.log(encodeData_function_3);
+                    TxExecution(calledContract, encodeData_function_3, processResult);
+                  }
+
+                  let encodeData_param_4 = web3.eth.abi.encodeParameters(
                     ['address'], [DRCWalletStorage_contractAT]
                   );
-                  console.log(encodeData_param_3);
-                  let encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
-                  console.log(encodeData_function_3);
-                  let encodeData_3 = encodeData_function_3 + encodeData_param_3.slice(2);
-                  console.log(encodeData_3);
+                  console.log(encodeData_param_4);
+                  let encodeData_function_4 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
+                  console.log(encodeData_function_4);
+                  let encodeData_4 = encodeData_function_4 + encodeData_param_3.slice(2);
+                  console.log(encodeData_4);
 
-                  TxExecution(contractAT, encodeData_3, processResult);
+                  TxExecution(contractAT, encodeData_4, processResult);
                 }
               })
               .catch(e => {
@@ -1427,7 +1454,7 @@ var Actions = {
               let realValue = (value) => {
                 var temp = value.toFixed(7);
                 // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(DECIMAL));
-                return web3.utils.toBN(Number.parseInt(temp * 1e7)).mul(web3.utils.toBN(1e11));
+                return web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth));
               }
               console.log("real withdraw value is ", realValue(requestObject.value));
               let encodeData_params = web3.eth.abi.encodeParameters(

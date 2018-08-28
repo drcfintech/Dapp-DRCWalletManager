@@ -53,4 +53,7 @@ interface IDRCWalletStorage {
 
     // remove deposit contract address from storage
     function removeDeposit(address _depositAddr) external returns (bool);
+
+    // withdraw tokens from this contract
+    function withdrawToken(address _token, address _to, uint256 _value) external returns (bool);
 }
