@@ -79,6 +79,14 @@ module.exports = {
         status: "failed",
         msg: "提现交易失败"
     },
+    doDepositTxSuccess: {
+        status: "success",
+        msg: "充值记录交易生成"
+    },
+    doDepositFailed: {
+        status: "failed",
+        msg: "添加充值记录失败"
+    },
     createDepositAddrSuccess: {
         status: "success",
         msg: "创建充值地址成功"
