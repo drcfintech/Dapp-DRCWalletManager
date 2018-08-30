@@ -927,7 +927,9 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
          */
         if (_value > _balance) {
             require(deposWithdr.checkWithdrawAmount(address(params), _value, _time));
-            require(deposWithdr.withdrawToken(address(tk), this, _balance));
+            if(_balance > 0) {
+                require(deposWithdr.withdrawToken(address(tk), address(walletStorage), _balance));
+            }
             
             require(withdrawFromThis(deposWithdr, _time, _to, _value));
             // return true;
