@@ -360,7 +360,7 @@ const sendTransaction = (rawTx, txType) => {
       web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
         .on('transactionHash', (hash) => {
           if (hash) {
-            console.log('TX hash: ', hash);
+            console.log(txType + ' TX hash: ', hash);
             txHash = hash;
             if (txType != transactionType.NORMAL) {
               return resolve(txHash); // maybe there are other type of transaction not need this
@@ -368,12 +368,18 @@ const sendTransaction = (rawTx, txType) => {
           }
         })
         .on('receipt', (receipt) => {
-          console.log('get receipt after send transaction: ', receipt);
+          console.log(txType + ' get receipt after send transaction: ', receipt);
           if (txType == transactionType.NORMAL) return resolve(finalReceipt(receipt));
         })
-        .on('confirmation', (confirmationNumber, receipt) => {})
+        .on('confirmation', (confirmationNumber, receipt) => {
+          console.log(txType + ' confirmation number: ', confirmationNumber);
+          if (confirmationNumber == 24 && receipt) {
+            console.log(txType + 'confirmation receipt', receipt);
+            return resolve(finalReceipt(receipt));
+          }
+        })
         .on('error', (err, receipt) => {
-          console.error('catch an error after sendTransaction... ', err);
+          console.error(txType + ' catch an error after sendTransaction... ', err);
           if (!txHash) {
             console.log('TX has not been created and error occurred...');
             currentNonce -= 1; // next Tx will take this currentNonce value;
@@ -430,7 +436,7 @@ const sendTransaction = (rawTx, txType) => {
         });
     })
     .catch(e => {
-      console.error("catch error when sendTransaction: ", e);
+      console.error(txType + "catch error when sendTransaction: ", e);
       return new Promise.reject(e);
     });
 };
@@ -571,67 +577,30 @@ var Actions = {
 
                   TxExecution(contractAT, encodeData, processResult);
 
-                  let encodeData_param_2 = web3.eth.abi.encodeParameters(
-                    ['address'], [contractAT]
-                  );
-                  console.log(encodeData_param_2);
-                  let encodeData_function_2;
-                  let encodeData_function_3;
-                  let calledContract;
-                  DRCWalletStorageContract.methods.owner().call()
-                    .then(result => {
-                      if (result != web3.eth.defaultAccount) {
-                        calledContract = result;
-                        encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('changeOwnershipto(address)');
-                        encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('ownedOwnershipTransferred()');
-                      } else {
-                        calledContract = DRCWalletStorage_contractAT;
-                        encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('transferOwnership(address)');
-                      }
-
-                      console.log(encodeData_function_2);
-                      let encodeData_2 = encodeData_function_2 + encodeData_param_2.slice(2);
-                      console.log(encodeData_2);
-
-                      TxExecution(calledContract, encodeData_2, processResult);
-                    })
-                    .catch(e => {
-                      if (e) {
-                        console.log('program error', e);
-                        // 保存log
-                        // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
-                        return;
-                      }
-                    });
-
-                  const handle = setInterval(() => {
-                    DRCWalletStorageContract.methods.pendingOwner().call()
+                  if (storageAddr != DRCWalletStorage_contractAT) {
+                    let encodeData_param_2 = web3.eth.abi.encodeParameters(
+                      ['address'], [contractAT]
+                    );
+                    console.log(encodeData_param_2);
+                    let encodeData_function_2;
+                    let encodeData_function_3;
+                    let calledContract;
+                    DRCWalletStorageContract.methods.owner().call()
                       .then(result => {
-                        var pending = web3.utils.toHex(result);
-                        console.log(pending);
-
-                        if (pending != contractAT) {
-                          console.log('pending owner is still not ', contractAT);
+                        if (result != web3.eth.defaultAccount) {
+                          calledContract = result;
+                          encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('changeOwnershipto(address)');
+                          encodeData_function_3 = web3.eth.abi.encodeFunctionSignature('ownedOwnershipTransferred()');
                         } else {
-                          clearInterval(handle);
-                          console.log('now pending owner is ', pending);
-
-                          if (encodeData_function_3) {
-                            console.log(encodeData_function_3);
-                            TxExecution(calledContract, encodeData_function_3, processResult);
-                          }
-
-                          let encodeData_param_4 = web3.eth.abi.encodeParameters(
-                            ['address'], [DRCWalletStorage_contractAT]
-                          );
-                          console.log(encodeData_param_4);
-                          let encodeData_function_4 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
-                          console.log(encodeData_function_4);
-                          let encodeData_4 = encodeData_function_4 + encodeData_param_4.slice(2);
-                          console.log(encodeData_4);
-
-                          TxExecution(contractAT, encodeData_4, processResult);
+                          calledContract = DRCWalletStorage_contractAT;
+                          encodeData_function_2 = web3.eth.abi.encodeFunctionSignature('transferOwnership(address)');
                         }
+
+                        console.log(encodeData_function_2);
+                        let encodeData_2 = encodeData_function_2 + encodeData_param_2.slice(2);
+                        console.log(encodeData_2);
+
+                        TxExecution(calledContract, encodeData_2, processResult);
                       })
                       .catch(e => {
                         if (e) {
@@ -641,7 +610,46 @@ var Actions = {
                           return;
                         }
                       });
-                  }, 15000);
+
+                    const handle = setInterval(() => {
+                      DRCWalletStorageContract.methods.pendingOwner().call()
+                        .then(result => {
+                          var pending = web3.utils.toHex(result);
+                          console.log(pending);
+
+                          if (pending != contractAT) {
+                            console.log('pending owner is still not ', contractAT);
+                          } else {
+                            clearInterval(handle);
+                            console.log('now pending owner is ', pending);
+
+                            if (encodeData_function_3) {
+                              console.log(encodeData_function_3);
+                              TxExecution(calledContract, encodeData_function_3, processResult);
+                            }
+
+                            let encodeData_param_4 = web3.eth.abi.encodeParameters(
+                              ['address'], [DRCWalletStorage_contractAT]
+                            );
+                            console.log(encodeData_param_4);
+                            let encodeData_function_4 = web3.eth.abi.encodeFunctionSignature('bindContract(address)');
+                            console.log(encodeData_function_4);
+                            let encodeData_4 = encodeData_function_4 + encodeData_param_4.slice(2);
+                            console.log(encodeData_4);
+
+                            TxExecution(contractAT, encodeData_4, processResult);
+                          }
+                        })
+                        .catch(e => {
+                          if (e) {
+                            console.log('program error', e);
+                            // 保存log
+                            // log.saveLog(operation[1], new Date().toLocaleString(), qs.hash, 0, 0, responceData.evmError);
+                            return;
+                          }
+                        });
+                    }, 15000);
+                  }
                 }
               })
               .catch(e => {
