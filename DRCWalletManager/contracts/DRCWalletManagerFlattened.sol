@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.13;
 
 interface IDRCWalletMgrParams {
     function singleWithdrawMin() external returns (uint256); // min value of single withdraw
@@ -31,10 +31,16 @@ interface IDRCWalletStorage {
     function frozenAmount(address _deposit) external view returns (uint256);
 
     // get the balance of the deposit address
-    function balanceOf(address _deposit) external view returns (uint256); 
+    function balanceOf(address _deposit) external view returns (uint256);
+
+    // get the deposit address by index
+    function depositAddressByIndex(uint256 _ind) external view returns (address); 
 
     // get the frozen amount of the deposit address
     function size() external view returns (uint256);
+    
+    // judge if the _deposit address exsisted.
+    function isExisted(address _deposit) external view returns (bool);
 
     // add one deposit address for that wallet
     function addDeposit(address _wallet, address _depositAddr) external returns (bool); 

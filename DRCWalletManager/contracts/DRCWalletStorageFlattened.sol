@@ -219,6 +219,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
     mapping (address => DepositRepository) depositRepos;
     mapping (address => address) public walletDeposits;
     mapping (address => bool) public frozenDeposits;
+    address[] depositAddresses;
     uint256 public size;
 
     
@@ -237,8 +238,36 @@ contract DRCWalletStorage is Withdrawable, Claimable {
         withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
         depositRepos[_depositAddr].balance = 0;
         depositRepos[_depositAddr].frozen = 0;
+        depositAddresses.push(_depositAddr);
 
         size = size.add(1);
+        return true;
+    }
+
+    /**
+     * @dev remove an address from the deposit address list
+     *
+     * @param _deposit the deposit address in the list
+     */
+    function removeDepositAddress(address _deposit) internal returns (bool) {
+        uint i = 0; 
+        for (;i < depositAddresses.length; i = i.add(1)) {
+            if (depositAddresses[i] == _deposit) {
+                break;
+            }
+        }
+
+        if (i >= depositAddresses.length) {
+            return false;
+        }
+
+        while (i < depositAddresses.length.sub(1)) {
+            depositAddresses[i] = depositAddresses[i.add(1)];
+            i = i.add(1);
+        }
+        
+        delete depositAddresses[depositAddresses.length.sub(1)];
+        depositAddresses.length = depositAddresses.length.sub(1);
         return true;
     }
     
@@ -248,12 +277,13 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _depositAddr the corresponding deposit address 
 	 */
     function removeDeposit(address _depositAddr) onlyOwner public returns (bool) {
-        require(_depositAddr != address(0));
+        require(isExisted(_depositAddr));
 
         WithdrawWallet memory withdraw = depositRepos[_depositAddr].withdrawWallets[0];
         delete walletDeposits[withdraw.walletAddr];
         delete depositRepos[_depositAddr];
         delete frozenDeposits[_depositAddr];
+        removeDepositAddress(_depositAddr);
         
         size = size.sub(1);
         return true;
@@ -418,6 +448,15 @@ contract DRCWalletStorage is Withdrawable, Claimable {
     /**
 	 * @dev get the balance of the deposit account
      *
+     * @param _deposit the wallet address
+	 */
+    function isExisted(address _deposit) public view returns (bool) {
+        return (walletsNumber(_deposit) > 0);
+    }
+
+    /**
+	 * @dev get the balance of the deposit account
+     *
      * @param _deposit the deposit address
 	 */
     function balanceOf(address _deposit) public view returns (int256) {
@@ -433,6 +472,15 @@ contract DRCWalletStorage is Withdrawable, Claimable {
     function frozenAmount(address _deposit) public view returns (uint256) {
         require(_deposit != address(0));
         return depositRepos[_deposit].frozen;
+    }
+
+    /**
+	 * @dev get the deposit address by index
+     *
+     * @param _ind the deposit address index
+	 */
+    function depositAddressByIndex(uint256 _ind) public view returns (address) {
+        return depositAddresses[_ind];
     }
 }
 
