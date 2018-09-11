@@ -266,7 +266,7 @@ let retrySendTransaction = (rawTx, origTxHash) => {
     if (iCount > intervals.retryTimes) {
       clearInterval(handle);
       console.log('has retry 10 times of retrying transactions...');
-      throw ('Failed to retry transactions for too many times!');
+      throw new Error('Failed to retry transactions for too many times!');
     }
 
     if (finished) {
@@ -276,8 +276,8 @@ let retrySendTransaction = (rawTx, origTxHash) => {
 
     Promise.all([getGasPrice()])
       .then(values => {
-        newRawTx.gasPrice = web3.utils.fromWei(values[0], "gwei");
-        console.log('current retry gasPrice: ', newRawTx.gasPrice);
+        console.log('current retry gasPrice: ', values[0]);
+        newRawTx.gasPrice = web3.utils.toHex(web3.utils.toWei(values[0].toString(), "gwei"));
 
         /**
          * internal retry will only take 3 times, if Tx cannot succeed, then
@@ -436,7 +436,7 @@ const sendTransaction = (rawTx, txType) => {
         });
     })
     .catch(e => {
-      console.error(txType + "catch error when sendTransaction: ", e);
+      console.error(txType + " catch error when sendTransaction: ", e);
       return new Promise.reject(e);
     });
 };
@@ -1614,57 +1614,57 @@ app.post("/createDepositAddr", function (req, res) {
   });
 });
 
-app.post("/getEthStatus", function (req, res) {　　
+app.post("/getEthStatus", function (req, res) {
   console.log('/getEthStatus: ', qs.hash);
   // 查询方法
   result = Actions.getEthStatus({
     data: qs.hash,
     res: res
   });
-});　
+});
 
-app.post("/getDepositAddr", function (req, res) {　　
+app.post("/getDepositAddr", function (req, res) {
   console.log('/getDepositAddr: ', qs.hash);
   // 查询方法
   result = Actions.getDepositAddr({
     data: qs.hash.slice(0, 42),
     res: res
   });
-});　　
+});
 
-app.post("/getDepositTxs", function (req, res) {　　
+app.post("/getDepositTxs", function (req, res) {
   console.log('/getDepositTxs: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxs({
     data: qs.hash,
     res: res
   });
-});　　　
+});
 
-app.post("/getTxsBlocks", function (req, res) {　　
+app.post("/getTxsBlocks", function (req, res) {
   console.log('/getTxsBlocks: ', qs.hash);
   // 查询方法
   result = Actions.getTxsBlocks({
     data: qs.hash,
     res: res
   });
-});　　　　
+});
 
-app.post("/getDepositTxsDetail", function (req, res) {　　
+app.post("/getDepositTxsDetail", function (req, res) {
   console.log('/getDepositTxsDetail: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxsDetail({
     data: qs.hash,
     res: res
   });
-});　　　
+});
 
 let lastWid;
-app.post("/withdraw", function (req, res) {　
+app.post("/withdraw", function (req, res) {
   if (qs.hash) {
     console.log('/withdraw info: ', qs.hash);
     qs = JSON.parse(qs.hash);
-  }　
+  }
   console.log('/withdraw to ', qs.withdrawAddress);
   console.log('/withdraw from ', qs.depositAddress);
   console.log('/withdraw value ', qs.value);
@@ -1679,14 +1679,14 @@ app.post("/withdraw", function (req, res) {　
     data: qs,
     res: res
   });
-});　
+});
 
 let lastDid;
-app.post("/doDeposit", function (req, res) {　
+app.post("/doDeposit", function (req, res) {
   if (qs.hash) {
     console.log('/doDeposit info: ', qs.hash);
     qs = JSON.parse(qs.hash);
-  }　
+  }
   console.log('/deposit to ', qs.depositAddress);
   console.log('/increase or not ', qs.increase);
   console.log('/deposit value ', qs.value);
@@ -1701,7 +1701,7 @@ app.post("/doDeposit", function (req, res) {　
     data: qs,
     res: res
   });
-});　
+});
 
 
 app.listen({
