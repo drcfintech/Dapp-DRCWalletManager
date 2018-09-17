@@ -513,6 +513,12 @@ let TxExecution = function (contractAT, encodeData, resultCallback, dataObject =
   getBalance(callback, dataObject);
 };
 
+let realValue = (value) => {
+  var temp = value.toFixed(7);
+  // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(decimals.default));
+  return ('0x' + web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth)));
+}
+
 var Actions = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
   start: function () {
@@ -802,16 +808,11 @@ var Actions = {
 
         // 拿到rawTx里面的data部分
         console.log(requestObject);
-        let realValue = (value) => {
-          var temp = value.toFixed(7);
-          // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(decimals.default));
-          return web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth));
-        }
-        console.log("real deposit value is ", '0x' + realValue(requestObject.value));
+        console.log("real deposit value is ", realValue(requestObject.value));
         let encodeData_params = web3.eth.abi.encodeParameters(
           ['address', 'bool', 'uint256'], [requestObject.depositAddress.slice(2),
             requestObject.increase,
-            '0x' + realValue(requestObject.value)
+            realValue(requestObject.value)
           ]
         );
         console.log(encodeData_params);
@@ -1472,11 +1473,11 @@ var Actions = {
               let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);
               console.log(withdrawAddrNameBytes);
               // const DECIMAL = web3.utils.toHex(1e18); 
-              let realValue = (value) => {
-                var temp = value.toFixed(7);
-                // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(DECIMAL));
-                return web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth));
-              }
+              // let realValue = (value) => {
+              //   var temp = value.toFixed(7);
+              //   // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(DECIMAL));
+              //   return web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth));
+              // }
               console.log("real withdraw value is ", realValue(requestObject.value));
               let encodeData_params = web3.eth.abi.encodeParameters(
                 ['address', 'uint256', 'bytes32', 'address', 'uint256', 'bool'], [
