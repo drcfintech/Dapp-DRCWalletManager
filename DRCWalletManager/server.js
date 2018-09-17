@@ -807,11 +807,11 @@ var Actions = {
           // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(decimals.default));
           return web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth));
         }
-        console.log("real deposit value is ", realValue(requestObject.value));
+        console.log("real deposit value is ", '0x' + realValue(requestObject.value));
         let encodeData_params = web3.eth.abi.encodeParameters(
           ['address', 'bool', 'uint256'], [requestObject.depositAddress.slice(2),
             requestObject.increase,
-            realValue(requestObject.value)
+            '0x' + realValue(requestObject.value)
           ]
         );
         console.log(encodeData_params);
