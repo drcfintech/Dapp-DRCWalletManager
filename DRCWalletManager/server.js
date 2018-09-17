@@ -262,23 +262,20 @@ let retrySendTransaction = (rawTx, origTxHash) => {
   let iCount = 0;
   let finished = false;
   const handle = setInterval(() => {
+    if (finished) {
+      clearInterval(handle);
+      console.log('retry TX succeed: ', currTxHash);
+    }
+
     iCount++;
     if (iCount > intervals.retryTimes) {
       clearInterval(handle);
       console.log('has retry 10 times of retrying transactions...');
-      throw new Error('Failed to retry transactions for too many times!');
-    }
-
-    if (finished) {
-      clearInterval(handle);
-      console.log('retry Tx succeed!');
+      return new Promise.reject(Error('Failed to retry transactions for too many times!'));
     }
 
     Promise.all([getGasPrice()])
       .then(values => {
-        console.log('current retry gasPrice: ', values[0]);
-        newRawTx.gasPrice = web3.utils.toHex(web3.utils.toWei(values[0].toString(), "gwei"));
-
         /**
          * internal retry will only take 3 times, if Tx cannot succeed, then
          * the base gasPrice is not correct, so retry another base gasPrice.
@@ -289,51 +286,54 @@ let retrySendTransaction = (rawTx, origTxHash) => {
           if (iCountInternal > intervals.retryTxTimes) {
             clearInterval(handleInternal);
             console.log('the base gasPrice is not appropriate, need to change...');
-          }
+          } else {
+            console.log('current retry gasPrice: ', values[0]);
+            newRawTx.gasPrice = web3.utils.toHex(web3.utils.toWei(values[0].toString(), "gwei"));
+            let tx = new Tx(newRawTx);
 
-          let tx = new Tx(newRawTx);
+            // 解决 RangeError: private key length is invalid
+            tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
+            let serializedTx = tx.serialize();
 
-          // 解决 RangeError: private key length is invalid
-          tx.sign(new Buffer(account.privateKey.slice(2), 'hex'));
-          let serializedTx = tx.serialize();
-
-          web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-            .on('transactionHash', (hash) => {
-              console.log('TX hash: ', hash);
-              txReplaceRecs.set(currTxHash, hash); // save this replaced Tx hash
-              prevTxHash = currTxHash;
-              currTxHash = hash;
-            })
-            .on('receipt', (receipt) => {
-              console.log('retry transaction succeed at ', receipt.transactionHash);
-              txReplaceRecs.set(prevTxHash, receipt.transactionHash); // save this replaced Tx hash
-              console.log('get receipt after retry sending transaction: ', receipt);
-              clearInterval(handle);
-              finished = true;
-            })
-            .on('error', (err, receipt) => {
-              console.error('catch an error after sendTransaction... ', err);
-              if (err) {
-                if (receipt && receipt.status) {
-                  console.log('the retry tx has already got the receipt: ', receipt);
-                  txReplaceRecs.set(prevTxHash, receipt.transactionHash); // save this replaced Tx hash
-                  clearInterval(handle);
-                }
-                if (err.message.includes('not mined within')) {
-                  console.log("retry tx met error of not mined within 50 blocks or 750 seconds...");
-                } else {
-                  if (err.message.includes('out of gas')) {
-                    console.error("account doesn't have enough gas or TX has been reverted...");
-                  } else {
-                    console.error('retry tx met other exceptions...');
+            web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+              .on('transactionHash', (hash) => {
+                console.log('current TX hash: ', currTxHash);
+                console.log('retry TX hash: ', hash);
+                txReplaceRecs.set(currTxHash, hash); // save this replaced Tx hash
+                prevTxHash = currTxHash;
+                currTxHash = hash;
+              })
+              .on('receipt', (receipt) => {
+                console.log('retry transaction succeed at ', receipt.transactionHash);
+                txReplaceRecs.set(prevTxHash, receipt.transactionHash); // save this replaced Tx hash
+                console.log('get receipt after retry sending transaction: ', receipt);
+                clearInterval(handle);
+                finished = true;
+              })
+              .on('error', (err, receipt) => {
+                console.error('catch an error after retry sendTransaction... ', err);
+                if (err) {
+                  if (receipt && receipt.status) {
+                    console.log('the retry tx has already got the receipt: ', receipt);
+                    txReplaceRecs.set(prevTxHash, receipt.transactionHash); // save this replaced Tx hash
+                    clearInterval(handle);
                   }
-                  clearInterval(handle); // this exception will cause not retrying the Tx submission
-                  throw err;
+                  if (err.message.includes('not mined within')) {
+                    console.log("retry tx met error of not mined within 50 blocks or 750 seconds...");
+                  } else {
+                    if (err.message.includes('out of gas')) {
+                      console.error("account doesn't have enough gas or TX has been reverted in retry...");
+                    } else {
+                      console.error('retry tx met other exceptions...');
+                    }
+                    clearInterval(handle); // this exception will cause not retrying the Tx submission
+                    return new Promise.reject(err);
+                  }
                 }
-              }
-            });
+              });
 
-          newRawTx.gasPrice *= gasPricePromote.GT_10; // add 15% gasPrice
+            values[0] *= gasPricePromote.GT_10; // add 15% gasPrice
+          }
         }, intervals.retryTx);
       });
   }, intervals.retryGasPrice);
@@ -409,6 +409,7 @@ const sendTransaction = (rawTx, txType) => {
                       console.log('has checked if TX had been mined for 5 minutes...');
                       clearInterval(handle); // not check any more after 300 minutes
                       // throw('Tx had not been mined for more than 5 minutes...');
+                      console.log('retrying tx: ', txHash);
                       retrySendTransaction(rawTx, txHash);
                     }
                   })
