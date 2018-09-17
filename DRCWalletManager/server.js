@@ -516,7 +516,7 @@ let TxExecution = function (contractAT, encodeData, resultCallback, dataObject =
 let realValue = (value) => {
   var temp = value.toFixed(7);
   // web3.utils.toBN(requestObject.value).mul(wb3.utils.toBN(decimals.default));
-  return ('0x' + web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth)).toString('hex'));
+  return ('0x' + web3.utils.toBN(Number.parseInt(temp * decimals.fixedWidth)).mul(web3.utils.toBN(decimals.leftWidth)).toString());
 }
 
 var Actions = {
