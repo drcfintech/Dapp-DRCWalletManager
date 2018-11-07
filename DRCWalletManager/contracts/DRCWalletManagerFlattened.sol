@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 interface IDRCWalletMgrParams {
     function singleWithdrawMin() external returns (uint256); // min value of single withdraw
@@ -11,48 +11,107 @@ interface IDRCWalletMgrParams {
     function chargeFeePool() external returns (address); // the address that will get the returned charge fees.
 }
 
+interface IDRCWalletStorage {
+    // get the deposit address for this _wallet address
+    function walletDeposits(address _wallet) external view returns (address); 
+
+    // get frozen status for the deposit address
+    function frozenDeposits(address _deposit) external view returns (bool); 
+
+    // get a wallet address by the deposit address and the index
+    function wallet(address _deposit, uint256 _ind) external view returns (address); 
+
+    // get a wallet name by the deposit address and the index
+    function walletName(address _deposit, uint256 _ind) external view returns (bytes32); 
+
+    // get the wallets number of a deposit address
+    function walletsNumber(address _deposit) external view returns (uint256);
+
+    // get the frozen amount of the deposit address
+    function frozenAmount(address _deposit) external view returns (uint256);
+
+    // get the balance of the deposit address
+    function balanceOf(address _deposit) external view returns (uint256);
+
+    // get the deposit address by index
+    function depositAddressByIndex(uint256 _ind) external view returns (address); 
+
+    // get the frozen amount of the deposit address
+    function size() external view returns (uint256);
+    
+    // judge if the _deposit address exsisted.
+    function isExisted(address _deposit) external view returns (bool);
+
+    // add one deposit address for that wallet
+    function addDeposit(address _wallet, address _depositAddr) external returns (bool); 
+
+    // change the default wallet address for the deposit address
+    function changeDefaultWallet(address _oldWallet, address _newWallet) external returns (bool); 
+
+    // freeze or release the tokens that has been deposited in the deposit address.
+    function freezeTokens(address _deposit, bool _freeze, uint256 _value) external returns (bool);
+
+    // increase balance of this deposit address
+    function increaseBalance(address _deposit, uint256 _value) external returns (bool);
+
+    // decrease balance of this deposit address
+    function decreaseBalance(address _deposit, uint256 _value) external returns (bool);
+
+    // add withdraw address for one deposit addresss
+    function addWithdraw(address _deposit, bytes32 _name, address _withdraw) external returns (bool);
+
+    // change the withdraw wallet name
+    function changeWalletName(address _deposit, bytes32 _newName, address _wallet) external returns (bool);
+
+    // remove deposit contract address from storage
+    function removeDeposit(address _depositAddr) external returns (bool);
+
+    // withdraw tokens from this contract
+    function withdrawToken(address _token, address _to, uint256 _value) external returns (bool);
+}
+
 library SafeMath {
 
   /**
   * @dev Multiplies two numbers, throws on overflow.
   */
-  function mul(uint256 a, uint256 b) internal pure returns (uint256 c) {
+  function mul(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
     // Gas optimization: this is cheaper than asserting 'a' not being zero, but the
     // benefit is lost if 'b' is also tested.
     // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
-    if (a == 0) {
+    if (_a == 0) {
       return 0;
     }
 
-    c = a * b;
-    assert(c / a == b);
+    c = _a * _b;
+    assert(c / _a == _b);
     return c;
   }
 
   /**
   * @dev Integer division of two numbers, truncating the quotient.
   */
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // assert(b > 0); // Solidity automatically throws when dividing by 0
-    // uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return a / b;
+  function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    // assert(_b > 0); // Solidity automatically throws when dividing by 0
+    // uint256 c = _a / _b;
+    // assert(_a == _b * c + _a % _b); // There is no case in which this doesn't hold
+    return _a / _b;
   }
 
   /**
   * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
   */
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    assert(b <= a);
-    return a - b;
+  function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    assert(_b <= _a);
+    return _a - _b;
   }
 
   /**
   * @dev Adds two numbers, throws on overflow.
   */
-  function add(uint256 a, uint256 b) internal pure returns (uint256 c) {
-    c = a + b;
-    assert(c >= a);
+  function add(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
+    c = _a + _b;
+    assert(c >= _a);
     return c;
   }
 }
@@ -86,6 +145,9 @@ contract Ownable {
 
   /**
    * @dev Allows the current owner to relinquish control of the contract.
+   * @notice Renouncing to ownership will leave the contract without an owner.
+   * It will not be possible to call the functions with the `onlyOwner`
+   * modifier anymore.
    */
   function renounceOwnership() public onlyOwner {
     emit OwnershipRenounced(owner);
@@ -180,16 +242,16 @@ contract TokenDestructible is Ownable {
 
   /**
    * @notice Terminate contract and refund to owner
-   * @param tokens List of addresses of ERC20 or ERC20Basic token contracts to
+   * @param _tokens List of addresses of ERC20 or ERC20Basic token contracts to
    refund.
    * @notice The called token contracts could try to re-enter this contract. Only
    supply token contracts you trust.
    */
-  function destroy(address[] tokens) onlyOwner public {
+  function destroy(address[] _tokens) public onlyOwner {
 
     // Transfer tokens to owner
-    for (uint256 i = 0; i < tokens.length; i++) {
-      ERC20Basic token = ERC20Basic(tokens[i]);
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      ERC20Basic token = ERC20Basic(_tokens[i]);
       uint256 balance = token.balanceOf(this);
       token.transfer(owner, balance);
     }
@@ -214,21 +276,21 @@ contract Claimable is Ownable {
    * @dev Allows the current owner to set the pendingOwner address.
    * @param newOwner The address to transfer ownership to.
    */
-  function transferOwnership(address newOwner) onlyOwner public {
+  function transferOwnership(address newOwner) public onlyOwner {
     pendingOwner = newOwner;
   }
 
   /**
    * @dev Allows the pendingOwner address to finalize the transfer.
    */
-  function claimOwnership() onlyPendingOwner public {
+  function claimOwnership() public onlyPendingOwner {
     emit OwnershipTransferred(owner, pendingOwner);
     owner = pendingOwner;
     pendingOwner = address(0);
   }
 }
 
-contract DepositWithdraw is Claimable, Withdrawable {
+contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
     using SafeMath for uint256;
 
     /**
@@ -449,9 +511,41 @@ contract DepositWithdraw is Claimable, Withdrawable {
     }
 }
 
-contract OwnerContract is Claimable {
+contract DelayedClaimable is Claimable {
+
+  uint256 public end;
+  uint256 public start;
+
+  /**
+   * @dev Used to specify the time period during which a pending
+   * owner can claim ownership.
+   * @param _start The earliest time ownership can be claimed.
+   * @param _end The latest time ownership can be claimed.
+   */
+  function setLimits(uint256 _start, uint256 _end) public onlyOwner {
+    require(_start <= _end);
+    end = _end;
+    start = _start;
+  }
+
+  /**
+   * @dev Allows the pendingOwner address to finalize the transfer, as long as it is called within
+   * the specified start and end time.
+   */
+  function claimOwnership() public onlyPendingOwner {
+    require((block.number <= end) && (block.number >= start));
+    emit OwnershipTransferred(owner, pendingOwner);
+    owner = pendingOwner;
+    pendingOwner = address(0);
+    end = 0;
+  }
+
+}
+
+contract OwnerContract is DelayedClaimable {
     Claimable public ownedContract;
-    address internal origOwner;
+    address public pendingOwnedOwner;
+    // address internal origOwner;
 
     /**
      * @dev bind a contract as its owner
@@ -461,10 +555,12 @@ contract OwnerContract is Claimable {
     function bindContract(address _contract) onlyOwner public returns (bool) {
         require(_contract != address(0));
         ownedContract = Claimable(_contract);
-        origOwner = ownedContract.owner();
+        // origOwner = ownedContract.owner();
 
         // take ownership of the owned contract
-        ownedContract.claimOwnership();
+        if (ownedContract.owner() != address(this)) {
+            ownedContract.claimOwnership();
+        }
 
         return true;
     }
@@ -473,11 +569,11 @@ contract OwnerContract is Claimable {
      * @dev change the owner of the contract from this contract address to the original one. 
      *
      */
-    function transferOwnershipBack() onlyOwner public {
-        ownedContract.transferOwnership(origOwner);
-        ownedContract = Claimable(address(0));
-        origOwner = address(0);
-    }
+    // function transferOwnershipBack() onlyOwner public {
+    //     ownedContract.transferOwnership(origOwner);
+    //     ownedContract = Claimable(address(0));
+    //     origOwner = address(0);
+    // }
 
     /**
      * @dev change the owner of the contract from this contract address to another one. 
@@ -485,10 +581,35 @@ contract OwnerContract is Claimable {
      * @param _nextOwner the contract address that will be next Owner of the original Contract
      */
     function changeOwnershipto(address _nextOwner)  onlyOwner public {
-        ownedContract.transferOwnership(_nextOwner);
-        ownedContract = Claimable(address(0));
-        origOwner = address(0);
+        require(ownedContract != address(0));
+
+        if (ownedContract.owner() != pendingOwnedOwner) {
+            ownedContract.transferOwnership(_nextOwner);
+            pendingOwnedOwner = _nextOwner;
+            // ownedContract = Claimable(address(0));
+            // origOwner = address(0);
+        } else {
+            // the pending owner has already taken the ownership
+            ownedContract = Claimable(address(0));
+            pendingOwnedOwner = address(0);
+        }
     }
+
+    /**
+     * @dev to confirm the owner of the owned contract has already been transferred. 
+     *
+     */
+    function ownedOwnershipTransferred() onlyOwner public returns (bool) {
+        require(ownedContract != address(0));
+        if (ownedContract.owner() == pendingOwnedOwner) {
+            // the pending owner has already taken the ownership  
+            ownedContract = Claimable(address(0));
+            pendingOwnedOwner = address(0);
+            return true;
+        } else {
+            return false;
+        }
+    } 
 }
 
 contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
@@ -497,44 +618,47 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
     /**
      * withdraw wallet description
      */
-    struct WithdrawWallet {
-        bytes32 name;
-        address walletAddr;
-    }
+    // struct WithdrawWallet {
+    //     bytes32 name;
+    //     address walletAddr;
+    // }
 
     /**
      * Deposit data storage
      */
-    struct DepositRepository {
-        // uint256 balance;
-        uint256 frozen;
-        WithdrawWallet[] withdrawWallets;
-        // mapping (bytes32 => address) withdrawWallets;
-    }
+    // struct DepositRepository {
+    //     // uint256 balance;
+    //     uint256 frozen;
+    //     WithdrawWallet[] withdrawWallets;
+    //     // mapping (bytes32 => address) withdrawWallets;
+    // }
 
-    mapping (address => DepositRepository) depositRepos;
-    mapping (address => address) public walletDeposits;
-    mapping (address => bool) public frozenDeposits;
+    // mapping (address => DepositRepository) depositRepos;
+    // mapping (address => address) public walletDeposits;
+    // mapping (address => bool) public frozenDeposits;
 
     ERC20 public tk; // the token will be managed
     IDRCWalletMgrParams public params; // the parameters that the management needs
+    IDRCWalletStorage public walletStorage; // the deposits and wallets data stored in a contract
     
     event CreateDepositAddress(address indexed _wallet, address _deposit);
     event FrozenTokens(address indexed _deposit, bool _freeze, uint256 _value);
-    // event ChangeDefaultWallet(address indexed _oldWallet, address _newWallet);
+    event ChangeDefaultWallet(address indexed _oldWallet, address _newWallet);
 
     /**
-	 * @dev withdraw tokens, send tokens to target default wallet
+	 * @dev initialize this contract with token, parameters and storage address
      *
      * @param _token the token address that will be withdraw
      * @param _walletParams the wallet management parameters
 	 */
-    function bindToken(address _token, address _walletParams) onlyOwner public returns (bool) {
+    function initialize(address _token, address _walletParams, address _walletStorage) onlyOwner public returns (bool) {
         require(_token != address(0));
         require(_walletParams != address(0));
 
         tk = ERC20(_token);
         params = IDRCWalletMgrParams(_walletParams);
+        walletStorage = IDRCWalletStorage(_walletStorage);
+
         return true;
     }
     
@@ -548,16 +672,31 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
 
         DepositWithdraw deposWithdr = new DepositWithdraw(_wallet); // new contract for deposit
         address _deposit = address(deposWithdr);
-        walletDeposits[_wallet] = _deposit;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-        withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
-        // depositRepos[_deposit].balance = 0;
-        depositRepos[_deposit].frozen = 0;
+        // walletDeposits[_wallet] = _deposit;
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        // withdrawWalletList.push(WithdrawWallet("default wallet", _wallet));
+        // // depositRepos[_deposit].balance = 0;
+        // depositRepos[_deposit].frozen = 0;
+
+        walletStorage.addDeposit(_wallet, _deposit);
 
         // deposWithdr.authorize(address(tk), this, 1e27); // give authorization to owner contract
 
-        emit CreateDepositAddress(_wallet, address(deposWithdr));
-        return deposWithdr;
+        emit CreateDepositAddress(_wallet, _deposit);
+        return _deposit;
+    }
+
+    /**
+	 * @dev deposit a value of funds to the deposit address
+     *
+     * @param _deposit the deposit address
+     * @param _increase increase or decrease the value
+     * @param _value the deposit funds value
+	 */
+    function doDeposit(address _deposit, bool _increase, uint256 _value) onlyOwner public returns (bool) {
+        return (_increase 
+                ? walletStorage.increaseBalance(_deposit, _value) 
+                : walletStorage.decreaseBalance(_deposit, _value));
     }
     
     /**
@@ -565,12 +704,13 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      *
      * @param _wallet the binded default withdraw wallet address
 	 */
-    // function getDepositAddress(address _wallet) onlyOwner public view returns (address) {
-    //     require(_wallet != address(0));
-    //     address deposit = walletDeposits[_wallet];
+    function getDepositAddress(address _wallet) onlyOwner public view returns (address) {
+        require(_wallet != address(0));
+        // address deposit = walletDeposits[_wallet];
 
-    //     return deposit;
-    // }
+        // return deposit;
+        return walletStorage.walletDeposits(_wallet);
+    }
     
     /**
 	 * @dev get deposit balance and frozen amount by using the deposit address
@@ -579,8 +719,9 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
 	 */
     function getDepositInfo(address _deposit) onlyOwner public view returns (uint256, uint256) {
         require(_deposit != address(0));
-        uint256 _balance = tk.balanceOf(_deposit);
-        uint256 frozenAmount = depositRepos[_deposit].frozen;
+        uint256 _balance = walletStorage.balanceOf(_deposit);
+        // uint256 frozenAmount = depositRepos[_deposit].frozen;
+        uint256 frozenAmount = walletStorage.frozenAmount(_deposit);
         // depositRepos[_deposit].balance = _balance;
 
         return (_balance, frozenAmount);
@@ -594,8 +735,9 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
     function getDepositWithdrawCount(address _deposit) onlyOwner public view returns (uint) {
         require(_deposit != address(0));
 
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-        uint len = withdrawWalletList.length;
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        // uint len = withdrawWalletList.length;
+        uint len = walletStorage.walletsNumber(_deposit);
 
         return len;
     }
@@ -613,9 +755,11 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         address[] memory wallets = new address[](_indices.length);
         
         for (uint i = 0; i < _indices.length; i = i.add(1)) {
-            WithdrawWallet storage wallet = depositRepos[_deposit].withdrawWallets[_indices[i]];
-            names[i] = wallet.name;
-            wallets[i] = wallet.walletAddr;
+            // WithdrawWallet storage wallet = depositRepos[_deposit].withdrawWallets[_indices[i]];
+            // names[i] = wallet.name;
+            // wallets[i] = wallet.walletAddr;
+            names[i] = walletStorage.walletName(_deposit, i);
+            wallets[i] = walletStorage.wallet(_deposit, i);
         }
         
         return (names, wallets);
@@ -628,17 +772,19 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      * @param _newWallet the new default withdraw wallet
 	 */
     function changeDefaultWithdraw(address _oldWallet, address _newWallet) onlyOwner public returns (bool) {
+        require(_oldWallet != address(0));
         require(_newWallet != address(0));
         
-        address deposit = walletDeposits[_oldWallet];
+        address deposit = walletStorage.walletDeposits(_oldWallet);
         DepositWithdraw deposWithdr = DepositWithdraw(deposit);
         require(deposWithdr.setWithdrawWallet(_newWallet));
 
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[deposit].withdrawWallets;
-        withdrawWalletList[0].walletAddr = _newWallet;
-        // emit ChangeDefaultWallet(_oldWallet, _newWallet);
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[deposit].withdrawWallets;
+        // withdrawWalletList[0].walletAddr = _newWallet;
+        bool res = walletStorage.changeDefaultWallet(_oldWallet, _newWallet);
+        emit ChangeDefaultWallet(_oldWallet, _newWallet);
 
-        return true;
+        return res;
     }
     
     /**
@@ -649,18 +795,20 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      * @param _value the amount of tokens need to be frozen
 	 */
     function freezeTokens(address _deposit, bool _freeze, uint256 _value) onlyOwner public returns (bool) {
-        require(_deposit != address(0));
+        // require(_deposit != address(0));
         
-        frozenDeposits[_deposit] = _freeze;
-        if (_freeze) {
-            depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.add(_value);
-        } else {
-            require(_value <= depositRepos[_deposit].frozen);
-            depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.sub(_value);
-        }
+        // frozenDeposits[_deposit] = _freeze;
+        // if (_freeze) {
+        //     depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.add(_value);
+        // } else {
+        //     require(_value <= depositRepos[_deposit].frozen);
+        //     depositRepos[_deposit].frozen = depositRepos[_deposit].frozen.sub(_value);
+        // }
+
+        bool res = walletStorage.freezeTokens(_deposit, _freeze, _value);
 
         emit FrozenTokens(_deposit, _freeze, _value);
-        return true;
+        return res;
     }
     
     /**
@@ -669,10 +817,14 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      * @param _deposit the deposit address
      * @param _time the timestamp the withdraw occurs
      * @param _value the amount of tokens need to be frozen
+     * @param _check if we will check the value is valid or meet the limit condition
 	 */
     function withdrawWithFee(address _deposit, uint256 _time, uint256 _value, bool _check) onlyOwner public returns (bool) {    
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
-        return withdrawWithFee(_deposit, _time, withdrawWalletList[0].name, withdrawWalletList[0].walletAddr, _value, _check);
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        // return withdrawWithFee(_deposit, _time, withdrawWalletList[0].name, withdrawWalletList[0].walletAddr, _value, _check);
+        bytes32 defaultWalletName = walletStorage.walletName(_deposit, 0);
+        address defaultWallet = walletStorage.wallet(_deposit, 0);
+        return withdrawWithFee(_deposit, _time, defaultWalletName, defaultWallet, _value, _check);
     }
     
     /**
@@ -683,18 +835,27 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
      * @param _to the withdraw wallet address
 	 */
     function checkWithdrawAddress(address _deposit, bytes32 _name, address _to) public view returns (bool, bool) {
-        uint len = depositRepos[_deposit].withdrawWallets.length;
+        // uint len = depositRepos[_deposit].withdrawWallets.length;
+        uint len = walletStorage.walletsNumber(_deposit);
         for (uint i = 0; i < len; i = i.add(1)) {
-            WithdrawWallet memory wallet = depositRepos[_deposit].withdrawWallets[i];
-            if (_name == wallet.name) {
-                return(true, (_to == wallet.walletAddr));
+            // WithdrawWallet memory wallet = depositRepos[_deposit].withdrawWallets[i];
+            // if (_name == wallet.name) {
+            //     return(true, (_to == wallet.walletAddr));
+            // }
+            // if (_to == wallet.walletAddr) {
+            //     return(true, true);
+            // }
+            bytes32 walletName = walletStorage.walletName(_deposit, i);
+            address walletAddr = walletStorage.wallet(_deposit, i);
+            if (_name == walletName) {
+                return(true, (_to == walletAddr));
             }
-            if (_to == wallet.walletAddr) {
-                return(true, true);
+            if (_to == walletAddr) {
+                return(false, true);
             }
         }
 
-        return (false, true);
+        return (false, false);
     }
     
     /**
@@ -710,10 +871,12 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
         uint256 realAmount = _value.sub(fee);
         address tokenReturn = params.chargeFeePool();
         if (tokenReturn != address(0) && fee > 0) {
-            require(tk.transfer(tokenReturn, fee));
+            // require(tk.transfer(tokenReturn, fee));
+            require(walletStorage.withdrawToken(tk, tokenReturn, fee));
         }
 
-        require (tk.transfer(_to, realAmount));
+        // require (tk.transfer(_to, realAmount));
+        require(walletStorage.withdrawToken(tk, _to, realAmount));
         _deposWithdr.recordWithdraw(_time, _to, realAmount);
 
         return true;
@@ -733,64 +896,89 @@ contract DRCWalletManager is OwnerContract, Withdrawable, TokenDestructible {
                              uint256 _time, 
                              bytes32 _name, 
                              address _to, 
-                             uint256 _value, 
+                             uint256 _value,
                              bool _check) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_to != address(0));
 
-        uint256 _balance = tk.balanceOf(_deposit);
+        uint256 totalBalance = walletStorage.balanceOf(_deposit);
+        uint256 frozen = walletStorage.frozenAmount(_deposit);
+        // uint256 available = totalBalance.sub(frozen);
+        // require(_value <= available);
         if (_check) {
-            require(_value <= _balance);
+            require(_value <= totalBalance.sub(frozen));
         }
 
-        uint256 available = _balance.sub(depositRepos[_deposit].frozen);
-        if (_check) {
-            require(_value <= available);
-        }
+        uint256 _balance = tk.balanceOf(_deposit);
 
         bool exist;
         bool correct;
-        WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
+        // WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         (exist, correct) = checkWithdrawAddress(_deposit, _name, _to);
         if(!exist) {
-            withdrawWalletList.push(WithdrawWallet(_name, _to));
-        } else if(!correct) {
-            return false;
-        }
+            // withdrawWalletList.push(WithdrawWallet(_name, _to));
+            if (!correct) {
+                walletStorage.addWithdraw(_deposit, _name, _to);
+            } else {
+                walletStorage.changeWalletName(_deposit, _name, _to);
+            }
+        } else {
+            require(correct, "wallet address must be correct with wallet name!");
+        }            
 
         DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
         /**
          * if deposit address doesn't have enough tokens to withdraw, 
-         * then withdraw from this contract. Record in deposit contract.
+         * then withdraw from this contract. Record this in the independent deposit contract.
          */
-        if (_value > available) {
+        if (_value > _balance) {
             require(deposWithdr.checkWithdrawAmount(address(params), _value, _time));
-            require(deposWithdr.withdrawToken(address(tk), this, available));
+            if(_balance > 0) {
+                require(deposWithdr.withdrawToken(address(tk), address(walletStorage), _balance));
+            }
             
             require(withdrawFromThis(deposWithdr, _time, _to, _value));
-            return true;
-        }
-        
-        return (deposWithdr.withdrawToken(address(tk), address(params), _time, _to, _value, params.chargeFee(), params.chargeFeePool()));        
+            // return true;
+        } else {        
+            require(deposWithdr.withdrawToken(address(tk), address(params), _time, _to, _value, params.chargeFee(), params.chargeFeePool()));    
+        }  
+
+        return walletStorage.decreaseBalance(_deposit, _value);  
+    }
+
+    /**
+	 * @dev destory the old depoist contract and take back the tokens
+     *
+     * @param _deposit the deposit address
+	 */
+    function destroyDepositContract(address _deposit) onlyOwner public returns (bool) {
+        require(_deposit != address(0));
+
+        DepositWithdraw deposWithdr = DepositWithdraw(_deposit);
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(tk);
+        deposWithdr.destroy(tokens);
+
+        return walletStorage.removeDeposit(_deposit);
     }
 
 }
 
 contract ERC20Basic {
   function totalSupply() public view returns (uint256);
-  function balanceOf(address who) public view returns (uint256);
-  function transfer(address to, uint256 value) public returns (bool);
+  function balanceOf(address _who) public view returns (uint256);
+  function transfer(address _to, uint256 _value) public returns (bool);
   event Transfer(address indexed from, address indexed to, uint256 value);
 }
 
 contract ERC20 is ERC20Basic {
-  function allowance(address owner, address spender)
+  function allowance(address _owner, address _spender)
     public view returns (uint256);
 
-  function transferFrom(address from, address to, uint256 value)
+  function transferFrom(address _from, address _to, uint256 _value)
     public returns (bool);
 
-  function approve(address spender, uint256 value) public returns (bool);
+  function approve(address _spender, uint256 _value) public returns (bool);
   event Approval(
     address indexed owner,
     address indexed spender,

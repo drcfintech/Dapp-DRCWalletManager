@@ -1,10 +1,10 @@
 pragma solidity ^0.4.23;
 
 
-import 'zeppelin-solidity/contracts/ownership/Claimable.sol';
-import 'zeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
-import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './OwnerContract.sol';
 import './Withdrawable.sol';
 import './DRCWalletMgrParamsInterface.sol';
@@ -13,7 +13,7 @@ import './DRCWalletMgrParamsInterface.sol';
 /**
  * contract that can deposit and withdraw tokens
  */
-contract DepositWithdraw is Claimable, Withdrawable {
+contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
     using SafeMath for uint256;
 
     /**

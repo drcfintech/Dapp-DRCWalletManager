@@ -1,0 +1,13 @@
+{
+    "contracts": [{
+        "name": "Migrations",
+        "requiredGasLimit": 288708
+    }, {
+        "name": "DRCWalletManager",
+        "requiredGasLimit": 5003896
+    }, {
+        "name": "DRCWalletStorage",
+        "requiredGasLimit": 1479751
+    }],
+    "gasPrice": "1100000000"
+}
