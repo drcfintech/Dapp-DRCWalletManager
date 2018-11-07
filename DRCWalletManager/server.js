@@ -25,9 +25,10 @@ const keystore = require(walletConfig.keystore);
 // 用户操作
 const operation = ["getDepositAddr", "createDepositAddr", "withdraw", "withdrawTo", "freezeToken"];
 
-
+const abiPath = './contractAbi/';
+const abiPath_external = './external/';
 // 智能合约
-const DRCWalletMgr_artifacts = require('./build/contracts/DRCWalletManager.json');
+const DRCWalletMgr_artifacts = require(abiPath + 'DRCWalletManager.json');
 // 合约发布地址
 const contractAT = DRCWalletMgr_artifacts.networks['4'].address;
 
@@ -39,7 +40,7 @@ let DRCWalletMgrContract;
 let account;
 
 // Token智能合约
-const DRCToken_artifacts = require('./external/DRCToken.json');
+const DRCToken_artifacts = require(abiPath_external + 'DRCToken.json');
 // Token合约发布地址
 const DRCToken_contractAT = DRCToken_artifacts.networks['4'].address;
 
@@ -49,7 +50,7 @@ const DRCToken_contractABI = DRCToken_artifacts.abi;
 let DRCTokenContract;
 
 // 智能合约
-const DRCWalletMgrParams_artifacts = require('./build/contracts/DRCWalletMgrParams.json');
+const DRCWalletMgrParams_artifacts = require(abiPath + 'DRCWalletMgrParams.json');
 // 合约发布地址
 const DRCWalletMgrParams_contractAT = DRCWalletMgrParams_artifacts.networks['4'].address;
 
@@ -59,7 +60,7 @@ const DRCWalletMgrParams_contractABI = DRCWalletMgrParams_artifacts.abi;
 let DRCWalletMgrParamsContract;
 
 // 智能合约
-const DRCWalletStorage_artifacts = require('./build/contracts/DRCWalletStorage.json');
+const DRCWalletStorage_artifacts = require(abiPath + 'DRCWalletStorage.json');
 // 合约发布地址
 const DRCWalletStorage_contractAT = DRCWalletStorage_artifacts.networks['4'].address;
 
