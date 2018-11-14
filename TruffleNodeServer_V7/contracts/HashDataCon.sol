@@ -1,15 +1,19 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.25;
 
 library HashOperateLib {
     
-    struct ExInfo{
+    struct ExInfo {
         address saver;
+        string name;
         uint256 saveTime;
     }
     
-    struct Info{
+    struct Info {
         mapping(string=>ExInfo) hashInfo;
+        string hashStr;
     }
+
+    //struct 
 	
 	/**
 	 * @dev insertHash,insert method
@@ -19,9 +23,9 @@ library HashOperateLib {
 	 */
     function insertHash(Info storage _self, string _hash) internal returns (bool) {
         
-        if (_self.hashInfo[_hash].saveTime > 0){
+        if (_self.hashInfo[_hash].saveTime > 0) {
             return false;
-        }else{
+        } else {
             _self.hashInfo[_hash].saver = msg.sender;
             _self.hashInfo[_hash].saveTime = now;
             return true;
@@ -36,10 +40,10 @@ library HashOperateLib {
 	 */
     function deleteHash(Info storage _self, string _hash) internal returns (bool) {
         
-        if (_self.hashInfo[_hash].saveTime > 0){
+        if (_self.hashInfo[_hash].saveTime > 0) {
             delete _self.hashInfo[_hash];
             return true;
-        }else{
+        } else {
             return false;
         }  
     }
@@ -51,10 +55,10 @@ library HashOperateLib {
 	 * @return true/false,saver,save time
 	 */
     function selectHash(Info storage _self, string _hash) internal view returns (bool,address,uint256) {
-        if (_self.hashInfo[_hash].saveTime > 0){
+        if (_self.hashInfo[_hash].saveTime > 0) {
 
             return (true,_self.hashInfo[_hash].saver,_self.hashInfo[_hash].saveTime);
-        }else{
+        } else {
             return (false,address(0),0);
         }  
     }
@@ -90,7 +94,7 @@ contract OwnableCon {
     }
 }
 
-contract HashDataCon is OwnableCon{
+contract HashDataCon is OwnableCon {
     
 	//import the HashOperateLib for contract
     using HashOperateLib for HashOperateLib.Info;
