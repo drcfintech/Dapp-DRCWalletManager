@@ -1,16 +1,16 @@
 {
     "transport": {
-        "host": "smtp.163.com",
+        "host": "smtp.drc.info",
         "port": 465
     },
     "options": {
-        "from": "XXXXXXXX<XXXXXXXX@163.com>",
-        "to": "XXXXXXXX@163.com"
+        "from": "admin@drc.info",
+        "to": "zhangzhi@drc.info"
     },
     "auth": {
-        "user": "XXXXXXXX@163.com",
-        "pass": "XXXXXXXX"
+        "user": "drcadmin",
+        "pass": "zz34&&Y31"
     },
-    "cronTime": "30 00 18 * * *",
-    "timeZone": "Asia/Shanghai"
+    "cronTime": "30 00 11 * * *",
+    "timeZone": "Europe/London"
 }

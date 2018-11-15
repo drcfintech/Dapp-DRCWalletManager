@@ -1,5 +1,5 @@
 {
-    "serverHost": "127.0.0.1",
-    "serverPort": 3050,
-    "endTime": 18
+    "serverHost": "dapp.test.rcitech.cn",
+    "serverPort": 5030,
+    "endTime": 11
 }

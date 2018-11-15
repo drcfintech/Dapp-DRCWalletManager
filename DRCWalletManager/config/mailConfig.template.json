@@ -1,0 +1,16 @@
+{
+    "transport": {
+        "host": "smtp.163.com",
+        "port": 465
+    },
+    "options": {
+        "from": "XXXXXXXX<XXXXXXXX@163.com>",
+        "to": "XXXXXXXX@163.com"
+    },
+    "auth": {
+        "user": "XXXXXXXX@163.com",
+        "pass": "XXXXXXXX"
+    },
+    "cronTime": "30 00 18 * * *",
+    "timeZone": "Asia/Shanghai"
+}
