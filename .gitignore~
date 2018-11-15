@@ -2,3 +2,6 @@
 **/HttpRequest/
 **/build
 **/package-lock.json
+**/*.old
+**/*.orig
+**/*.log
