@@ -1,0 +1,16 @@
+{
+    "transport": {
+        "host": "smtp.drc.info",
+        "port": 465
+    },
+    "options": {
+        "from": "admin@drc.info",
+        "to": "zhangzhi@drc.info"
+    },
+    "auth": {
+        "user": "drcadmin",
+        "pass": "zz34&&Y31"
+    },
+    "cronTime": "30 00 11 * * *",
+    "timeZone": "Europe/London"
+}
