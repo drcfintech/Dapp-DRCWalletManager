@@ -3,5 +3,10 @@
 **/build
 **/package-lock.json
 **/*.old
+**/*.old/
 **/*.orig
 **/*.log
+**/**/*.old
+**/**/*.orig
+**/**/*.log
+**/**/*.snippet

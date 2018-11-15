@@ -1,7 +1,7 @@
 {
   "name": "DRCHash",
   "version": "1.0.0",
-  "description": "",
+  "description": "DRC platform hash management",
   "main": "server.js",
   "directories": {
     "test": "test"
