@@ -218,7 +218,7 @@ const getGasPrice = () => {
             else gasPrice *= gasPricePromote.DEFAULT;
 
             // resolve(web3.utils.toHex(Math.round(result)));
-            resolve(gasPrice);
+            resolve(gasPrice.toFixed(2));
           }
         });
       }, 5000);
