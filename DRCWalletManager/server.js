@@ -456,6 +456,7 @@ let TxExecution = function (contractAT, encodeData, resultCallback, dataObject =
       to: contractAT,
       data: encodeData
     };
+    let txSubmited = false;
 
     Promise.all([getNonce(), getGasPrice(), getGasLimit(callObject)])
       .then(values => {
@@ -486,7 +487,9 @@ let TxExecution = function (contractAT, encodeData, resultCallback, dataObject =
         return rawTx;
       })
       .then((rawTx) => {
-        return sendTransaction(rawTx, txType);
+        let res = sendTransaction(rawTx, txType);
+        txSubmited = true;
+        return res;
       })
       .then((result) => {
         // console.log("data object is ", dataObject);
@@ -500,6 +503,9 @@ let TxExecution = function (contractAT, encodeData, resultCallback, dataObject =
       .catch(e => {
         if (e) {
           console.error('evm error', e);
+          if (!txSubmited) {
+            currentNonce -= 1; // tx hadn't succeed submitting, so nonce should not increase
+          }
           if (dataObject != {}) {
             dataObject.res.end(JSON.stringify(responceData.transactionError));
           }
