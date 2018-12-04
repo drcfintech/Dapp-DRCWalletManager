@@ -22,6 +22,14 @@ var Tx = require('ethereumjs-tx');
 
 const keystore = require(walletConfig.keystore);
 //console.log('keystore  ', keystore);
+
+const infura_url = {
+  mainnet: "https://mainnet.infura.io/v3/",
+  ropsten: "https://ropsten.infura.io/v3/",
+  rinkeby: "https://rinkeby.infura.io/v3/"
+};
+
+
 // 用户操作
 const operation = ["getDepositAddr", "createDepositAddr", "withdraw", "withdrawTo", "freezeToken"];
 
@@ -126,7 +134,7 @@ function initWeb3Provider() {
   if (typeof web3 !== 'undefined') {
     web3 = new Web3(web3.currentProvider);
   } else {
-    web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io/" + walletConfig.infuraAPIkey));
+    web3 = new Web3(new Web3.providers.HttpProvider(infura_url.rinkeby + walletConfig.infuraAPIkey));
   }
 
   // 解决Error：TypeError: Cannot read property 'kdf' of undefined
