@@ -1,8 +1,0 @@
-{"operation":"withdraw","date":"2018-5-9 19:23:15","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 11:09:34","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 11:29:17","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 12:10:55","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 14:03:14","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 14:59:22","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 14:59:35","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-10 16:11:41","hash":"0x57b0248cc6b412fff76ca3d1a18466e61c7e2660","gasPrice":"0 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}

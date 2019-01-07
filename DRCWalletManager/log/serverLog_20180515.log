@@ -1,8 +1,0 @@
-{"operation":"getDepositAddr","date":"2018-5-14 20:00:57","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"1 Gwei","gasUsed":1841397,"result":{"status":"success","msg":"创建充值地址成功","txHash":"0xeb12e675f27c611672328ee37a31e526ded67341b98832da6b38d46b09b8e2d4","gasUsed":1841397,"gasPrice":"1","depositAddr":"0xb48a03d8956d91506c0119edeaa9ecb7289dc38d"}}
-{"operation":"withdraw","date":"2018-5-14 20:54:12","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":0,"result":{"status":"failed","msg":"其他"}}
-{"operation":"withdraw","date":"2018-5-14 20:59:56","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":28045,"result":{"status":"success","msg":"创建充值地址成功"}}
-{"operation":"withdraw","date":"2018-5-14 22:04:12","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":28045,"result":{"status":"success","msg":"创建充值地址成功"}}
-{"operation":"withdraw","date":"2018-5-14 22:06:57","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":28045,"result":{"status":"success","msg":"创建充值地址成功"}}
-{"operation":"withdraw","date":"2018-5-14 22:20:57","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":28365,"result":{"status":"success","msg":"创建充值地址成功"}}
-{"operation":"withdraw","date":"2018-5-14 22:37:27","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":28557,"result":{"status":"success","msg":"创建充值地址成功"}}
-{"operation":"withdraw","date":"2018-5-14 22:59:57","hash":"0x19C7f02159137438b58E4959082C26Ed8c5D55c0","gasPrice":"0x59682f00 Gwei","gasUsed":164322,"result":{"status":"success","msg":"创建充值地址成功"}}

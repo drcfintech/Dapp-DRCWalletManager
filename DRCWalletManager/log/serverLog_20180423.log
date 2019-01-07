@@ -1,1 +1,0 @@
-{"operation":"getDepositAddr","date":"2018-4-23 15:47:37","hash":"0x29037432cCcd83F49E2EED8941E510a2E4599d68","gasPrice":"1 Gwei","gasUsed":25131,"result":{"status":"success","msg":"创建充值地址成功","txHash":"0x5c0d8ac66895beac80b1886f930a546ba1148e68b160506899c8fb4e133bf007","gasUsed":25131,"gasPrice":"1"}}
