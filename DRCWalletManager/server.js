@@ -138,7 +138,7 @@ function initWeb3Provider() {
   }
 
   // 解决Error：TypeError: Cannot read property 'kdf' of undefined
-  account = web3.eth.accounts.decrypt(JSON.parse(JSON.stringify(keystore).toLowerCase()), walletConfig.password)
+  account = web3.eth.accounts.decrypt(JSON.parse(JSON.stringify(keystore).toLowerCase()), walletConfig.password);
   web3.eth.defaultAccount = account.address;
   console.log('web3.eth.defaultAccount : ', web3.eth.defaultAccount);
 
