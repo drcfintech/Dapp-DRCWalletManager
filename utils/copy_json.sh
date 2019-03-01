@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/bin/cp -f ../build/contracts/DRCWallet*.json ../contractAbi/
+\cp -f build/contracts/DRCWallet*.json contractAbi/
