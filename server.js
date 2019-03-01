@@ -341,7 +341,7 @@ let retrySendTransaction = (rawTx, origTxHash) => {
                 }
               });
 
-            values[0] *= gasPricePromote.GT_10; // add 15% gasPrice
+            values[0] = (values[0] * gasPricePromote.GT_10).toFixed(2); // add 15% gasPrice
           }
         }, intervals.retryTx);
       });
