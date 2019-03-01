@@ -23,9 +23,15 @@ const gasPricePromote = {
 //     contractArray.push(contractInstance);
 // }
 
+const infura_url = {
+    mainnet: "https://mainnet.infura.io/v3/",
+    ropsten: "https://ropsten.infura.io/v3/",
+    rinkeby: "https://rinkeby.infura.io/v3/"
+};
+
 var web3 = new Web3(
     new Web3.providers.HttpProvider(
-        "https://mainnet.infura.io/" + walletConfig.infuraAPIkey
+        infura_url.rinkeby + walletConfig.infuraAPIkey
     )
 );
 
