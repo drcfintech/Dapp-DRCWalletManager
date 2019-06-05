@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 import 'openzeppelin-solidity/contracts/ownership/DelayedClaimable.sol';
 
@@ -46,7 +46,7 @@ contract OwnerContract is DelayedClaimable {
      * @param _nextOwner the contract address that will be next Owner of the original Contract
      */
     function changeOwnershipto(address _nextOwner)  onlyOwner public {
-        require(ownedContract != address(0));
+        require(address(ownedContract) != address(0));
 
         if (ownedContract.owner() != pendingOwnedOwner) {
             ownedContract.transferOwnership(_nextOwner);
@@ -65,7 +65,7 @@ contract OwnerContract is DelayedClaimable {
      *
      */
     function ownedOwnershipTransferred() onlyOwner public returns (bool) {
-        require(ownedContract != address(0));
+        require(address(ownedContract) != address(0));
         if (ownedContract.owner() == pendingOwnedOwner) {
             // the pending owner has already taken the ownership  
             ownedContract = Claimable(address(0));

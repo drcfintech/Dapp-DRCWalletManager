@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 
 import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
@@ -19,7 +19,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
     uint256 public dayWithdrawCount; // Max number of withdraw counting
 
     uint256 public chargeFee; // the charge fee for withdraw
-    address public chargeFeePool; // the address that will get the returned charge fees.
+    address payable public chargeFeePool; // the address that will get the returned charge fees.
 
 
     function initialSingleWithdrawMax(uint256 _value) onlyOwner public {
@@ -58,7 +58,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         chargeFee = _value;
     }
 
-    function initialChargeFeePool(address _pool) onlyOwner public {
+    function initialChargeFeePool(address payable _pool) onlyOwner public {
         require(!init);
 
         chargeFeePool = _pool;
@@ -88,7 +88,7 @@ contract DRCWalletMgrParams is Claimable, Autonomy, Destructible {
         chargeFee = _value;
     }
 
-    function setChargeFeePool(address _pool) onlyCongress public {
+    function setChargeFeePool(address payable _pool) onlyCongress public {
         chargeFeePool = _pool;
     }
 }

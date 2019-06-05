@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
@@ -17,7 +17,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      */
     struct WithdrawWallet {
         bytes32 name;
-        address walletAddr;
+        address payable walletAddr;
     }
 
     /**
@@ -31,9 +31,9 @@ contract DRCWalletStorage is Withdrawable, Claimable {
     }
 
     mapping (address => DepositRepository) depositRepos;
-    mapping (address => address) public walletDeposits;
+    mapping (address => address payable) public walletDeposits;
     mapping (address => bool) public frozenDeposits;
-    address[] depositAddresses;
+    address payable[] depositAddresses;
     uint256 public size;
 
     
@@ -43,7 +43,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _wallet the default withdraw wallet address
      * @param _depositAddr the corresponding deposit address to the default wallet
 	 */
-    function addDeposit(address _wallet, address _depositAddr) onlyOwner public returns (bool) {
+    function addDeposit(address payable _wallet, address payable _depositAddr) onlyOwner public returns (bool) {
         require(_wallet != address(0));
         require(_depositAddr != address(0));
         
@@ -63,7 +63,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _deposit the deposit address in the list
      */
-    function removeDepositAddress(address _deposit) internal returns (bool) {
+    function removeDepositAddress(address payable _deposit) internal returns (bool) {
         uint i = 0; 
         for (;i < depositAddresses.length; i = i.add(1)) {
             if (depositAddresses[i] == _deposit) {
@@ -90,7 +90,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _depositAddr the corresponding deposit address 
 	 */
-    function removeDeposit(address _depositAddr) onlyOwner public returns (bool) {
+    function removeDeposit(address payable _depositAddr) onlyOwner public returns (bool) {
         require(isExisted(_depositAddr));
 
         WithdrawWallet memory withdraw = depositRepos[_depositAddr].withdrawWallets[0];
@@ -110,7 +110,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _name the new withdraw wallet name
      * @param _withdraw the new withdraw wallet address
 	 */
-    function addWithdraw(address _deposit, bytes32 _name, address _withdraw) onlyOwner public returns (bool) {
+    function addWithdraw(address payable _deposit, bytes32 _name, address payable _withdraw) onlyOwner public returns (bool) {
         require(_deposit != address(0));
 
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
@@ -124,7 +124,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be increased
 	 */
-    function increaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
+    function increaseBalance(address payable _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         int256 _balance = depositRepos[_deposit].balance;
@@ -138,7 +138,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _deposit the corresponding deposit address 
      * @param _value the amount that the balance will be decreased
 	 */
-    function decreaseBalance(address _deposit, uint256 _value) onlyOwner public returns (bool) {
+    function decreaseBalance(address payable _deposit, uint256 _value) onlyOwner public returns (bool) {
         // require(_deposit != address(0));
         require (walletsNumber(_deposit) > 0);
         int256 _balance = depositRepos[_deposit].balance;
@@ -152,11 +152,11 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _oldWallet the old default withdraw wallet
      * @param _newWallet the new default withdraw wallet
 	 */
-    function changeDefaultWallet(address _oldWallet, address _newWallet) onlyOwner public returns (bool) {
+    function changeDefaultWallet(address payable _oldWallet, address payable _newWallet) onlyOwner public returns (bool) {
         require(_oldWallet != address(0));
         require(_newWallet != address(0));
 
-        address _deposit = walletDeposits[_oldWallet];      
+        address payable _deposit = walletDeposits[_oldWallet];      
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
         withdrawWalletList[0].walletAddr = _newWallet;
         // emit ChangeDefaultWallet(_oldWallet, _newWallet);
@@ -173,7 +173,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _newName the wallet name
      * @param _wallet the withdraw wallet
 	 */
-    function changeWalletName(address _deposit, bytes32 _newName, address _wallet) onlyOwner public returns (bool) {
+    function changeWalletName(address payable _deposit, bytes32 _newName, address payable _wallet) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         require(_wallet != address(0));
       
@@ -197,7 +197,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _freeze to freeze or release
      * @param _value the amount of tokens need to be frozen
 	 */
-    function freezeTokens(address _deposit, bool _freeze, uint256 _value) onlyOwner public returns (bool) {
+    function freezeTokens(address payable _deposit, bool _freeze, uint256 _value) onlyOwner public returns (bool) {
         require(_deposit != address(0));
         // require(_value <= balanceOf(_deposit));
         
@@ -227,7 +227,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _deposit the deposit address
      * @param _ind the wallet index in the list
 	 */
-    function wallet(address _deposit, uint256 _ind) public view returns (address) {
+    function wallet(address payable _deposit, uint256 _ind) public view returns (address payable) {
         require(_deposit != address(0));
 
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
@@ -240,7 +240,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      * @param _deposit the deposit address
      * @param _ind the wallet index in the list
 	 */
-    function walletName(address _deposit, uint256 _ind) public view returns (bytes32) {
+    function walletName(address payable _deposit, uint256 _ind) public view returns (bytes32) {
         require(_deposit != address(0));
 
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
@@ -252,7 +252,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _deposit the deposit address
 	 */
-    function walletsNumber(address _deposit) public view returns (uint256) {
+    function walletsNumber(address payable _deposit) public view returns (uint256) {
         require(_deposit != address(0));
 
         WithdrawWallet[] storage withdrawWalletList = depositRepos[_deposit].withdrawWallets;
@@ -264,7 +264,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _deposit the wallet address
 	 */
-    function isExisted(address _deposit) public view returns (bool) {
+    function isExisted(address payable _deposit) public view returns (bool) {
         return (walletsNumber(_deposit) > 0);
     }
 
@@ -273,7 +273,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _deposit the deposit address
 	 */
-    function balanceOf(address _deposit) public view returns (int256) {
+    function balanceOf(address payable _deposit) public view returns (int256) {
         require(_deposit != address(0));
         return depositRepos[_deposit].balance;
     }
@@ -283,7 +283,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _deposit the deposit address
 	 */
-    function frozenAmount(address _deposit) public view returns (uint256) {
+    function frozenAmount(address payable _deposit) public view returns (uint256) {
         require(_deposit != address(0));
         return depositRepos[_deposit].frozen;
     }
@@ -293,7 +293,7 @@ contract DRCWalletStorage is Withdrawable, Claimable {
      *
      * @param _ind the deposit address index
 	 */
-    function depositAddressByIndex(uint256 _ind) public view returns (address) {
+    function depositAddressByIndex(uint256 _ind) public view returns (address payable) {
         return depositAddresses[_ind];
     }
 }

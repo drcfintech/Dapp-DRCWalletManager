@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -15,7 +15,7 @@ contract Withdrawable is Ownable {
     /**
 	 * @dev recording receiving ether from msn.sender
 	 */
-    function () payable public {
+    function () external payable  {
         emit ReceiveEther(msg.sender, msg.value);
     }
 
@@ -24,7 +24,7 @@ contract Withdrawable is Ownable {
 	 * @param _to is where the ether will be sent to
 	 *        _amount is the number of the ether
 	 */
-    function withdraw(address _to, uint _amount) public onlyOwner returns (bool) {
+    function withdraw(address payable _to, uint _amount) public onlyOwner returns (bool) {
         require(_to != address(0));
         _to.transfer(_amount);
         emit WithdrawEther(_to, _amount);
@@ -39,7 +39,7 @@ contract Withdrawable is Ownable {
 	 * @param _to is where the tokens will be sent to
 	 *        _value is the number of the token
 	 */
-    function withdrawToken(address _token, address _to, uint256 _value) public onlyOwner returns (bool) {
+    function withdrawToken(address _token, address payable _to, uint256 _value) public onlyOwner returns (bool) {
         require(_to != address(0));
         require(_token != address(0));
 
