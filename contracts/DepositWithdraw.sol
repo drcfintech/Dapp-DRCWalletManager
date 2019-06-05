@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 
 import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
@@ -40,7 +40,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
     accumulatedRecord dayWithdrawRec; // accumulated amount record for one day
     accumulatedRecord monthWithdrawRec; // accumulated amount record for one month
 
-    address wallet; // the binded withdraw address
+    address payable wallet; // the binded withdraw address
 
     event ReceiveDeposit(address _from, uint256 _value, address _token, bytes _extraData);
     
@@ -48,7 +48,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
      * @dev constructor of the DepositWithdraw contract
      * @param _wallet the binded wallet address to this depositwithdraw contract
      */
-    constructor(address _wallet) public {
+    constructor(address payable _wallet) public {
         require(_wallet != address(0));
         wallet = _wallet;
     }
@@ -57,7 +57,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
 	 * @dev set the default wallet address
 	 * @param _wallet the default wallet address binded to this deposit contract
 	 */
-    function setWithdrawWallet(address _wallet) onlyOwner public returns (bool) {
+    function setWithdrawWallet(address payable _wallet) onlyOwner public returns (bool) {
         require(_wallet != address(0));
         wallet = _wallet;
 
@@ -68,7 +68,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
 	 * @dev util function to change bytes data to bytes32 data
 	 * @param _data the bytes data to be converted
 	 */
-    function bytesToBytes32(bytes _data) public pure returns (bytes32 result) {
+    function bytesToBytes32(bytes memory _data) public pure returns (bytes32 result) {
         assembly {
             result := mload(add(_data, 32))
         }
@@ -82,12 +82,12 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
      * @param _token address the ERC20 token address
      * @param _extraData bytes the extra data for the record
      */
-    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) onlyOwner public {
+    function receiveApproval(address _from, uint256 _value, address _token, bytes memory _extraData) onlyOwner public {
         require(_token != address(0));
         require(_from != address(0));
         
         ERC20 tk = ERC20(_token);
-        require(tk.transferFrom(_from, this, _value));
+        require(tk.transferFrom(_from, address(uint160(address(this))), _value));
         bytes32 timestamp = bytesToBytes32(_extraData);
         deposRecs.push(TransferRecord(uint256(timestamp), _from, _value));
         emit ReceiveDeposit(_from, _value, _token, _extraData);
@@ -107,7 +107,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
      * @param _to is where the tokens will be sent to
      * @param _value is the number of the token
      */
-    function recordWithdraw(uint256 _time, address _to, uint256 _value) onlyOwner public {    
+    function recordWithdraw(uint256 _time, address payable _to, uint256 _value) onlyOwner public {    
         withdrRecs.push(TransferRecord(_time, _to, _value));
     }
 
@@ -160,7 +160,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
      *        _fee is the amount of the transferring costs
      *        _tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawToken(address _token, address _params, uint256 _time, address _to, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
+    function withdrawToken(address _token, address _params, uint256 _time, address payable _to, uint256 _value, uint256 _fee, address payable _tokenReturn) public onlyOwner returns (bool) {
         require(_to != address(0));
         require(_token != address(0));
         require(_value > _fee);
@@ -191,7 +191,7 @@ contract DepositWithdraw is Claimable, Withdrawable, TokenDestructible {
      *        _fee is the amount of the transferring costs
      *        —tokenReturn is the address that return back the tokens of the _fee
 	 */
-    function withdrawTokenToDefault(address _token, address _params, uint256 _time, uint256 _value, uint256 _fee, address _tokenReturn) public onlyOwner returns (bool) {
+    function withdrawTokenToDefault(address _token, address _params, uint256 _time, uint256 _value, uint256 _fee, address payable _tokenReturn) public onlyOwner returns (bool) {
         return withdrawToken(_token, _params, _time, wallet, _value, _fee, _tokenReturn);
     }
 

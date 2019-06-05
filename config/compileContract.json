@@ -1,1 +1,1 @@
-{"contracts":[{"name":"Migrations","requiredGasLimit":230115},{"name":"DRCWalletManager","requiredGasLimit":5003896},{"name":"DRCWalletStorage","requiredGasLimit":1479680},{"name":"DRCWalletMgrParams","requiredGasLimit":809937}],"gasPrice":"3360000000"}
+{"contracts":[{"name":"Migrations","requiredGasLimit":190997},{"name":"DRCWalletManager","requiredGasLimit":5057886},{"name":"DRCWalletStorage","requiredGasLimit":1579733},{"name":"DRCWalletMgrParams","requiredGasLimit":791766}],"gasPrice":"1100000000"}

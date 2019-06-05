@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.18 <0.7.0;
 
 
 /**
@@ -14,5 +14,5 @@ interface IDRCWalletMgrParams {
     function dayWithdrawCount() external returns (uint256); // Max number of withdraw counting
 
     function chargeFee() external returns (uint256); // the charge fee for withdraw
-    function chargeFeePool() external returns (address); // the address that will get the returned charge fees.
+    function chargeFeePool() external returns (address payable); // the address that will get the returned charge fees.
 }

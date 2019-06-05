@@ -96,7 +96,7 @@ console.log(contractConfig.contracts);
 // var contractInstance1 = artifacts.require(contractConfig.contracts[1].name);
 // var contractInstance2 = artifacts.require(contractConfig.contracts[2].name);
 
-module.exports = function (deployer) {
+module.exports = function(deployer) {
   // deployContract(DRCWalletMgrCon, deployer);
   // sleep(300000);
   // deployContract(DRCWalletStorage, deployer);
@@ -105,6 +105,16 @@ module.exports = function (deployer) {
     if (ind > 0) {
       console.log(contract.name);
       var contractInstance = artifacts.require(contract.name);
+      if (contract.link && contract.link !== "") {
+        var linkedLib = artifacts.require(contract.link);
+        if (linkedLib.address == undefined || linkedLib.address === "") {
+          deployer.deploy(linkedLib, {
+            gas: "6700000",
+            gasPrice: contractConfig.gasPrice
+          });
+        }
+        deployer.link(contract.link, contractInstance);
+      }
       deployer.deploy(contractInstance, {
         gas: contract.requiredGasLimit, //'6700000',
         gasPrice: contractConfig.gasPrice
