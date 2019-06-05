@@ -142,12 +142,12 @@ function initWeb3Provider() {
   web3.eth.defaultAccount = account.address;
   console.log('web3.eth.defaultAccount : ', web3.eth.defaultAccount);
 
-  if (typeof web3.eth.getAccountsPromise === 'undefined') {
-    //console.log('解决 Error: Web3ProviderEngine does not support synchronous requests.');
-    Promise.promisifyAll(web3.eth, {
-      suffix: 'Promise'
-    });
-  }
+  // if (typeof web3.eth.getAccountsPromise === 'undefined') {
+  //   //console.log('解决 Error: Web3ProviderEngine does not support synchronous requests.');
+  //   Promise.promisifyAll(web3.eth, {
+  //     suffix: 'Promise'
+  //   });
+  // }
 }
 
 // let gasPrice;
@@ -451,7 +451,7 @@ const sendTransaction = (rawTx, txType) => {
     });
 };
 
-let TxExecution = function (contractAT, encodeData, resultCallback, dataObject = {}, txType = 'normal') {
+let TxExecution = function(contractAT, encodeData, resultCallback, dataObject = {}, txType = 'normal') {
 
   // 上链结果响应到请求方
   // const returnResult = (result) => {
@@ -537,7 +537,7 @@ let realValue = (value) => {
 
 var Actions = {
   // 初始化：拿到web3提供的地址， 利用json文件生成合约··
-  start: function () {
+  start: function() {
     DRCWalletMgrContract = new web3.eth.Contract(contractABI, contractAT, {});
     DRCTokenContract = new web3.eth.Contract(DRCToken_contractABI, DRCToken_contractAT, {});
     DRCWalletMgrParamsContract = new web3.eth.Contract(DRCWalletMgrParams_contractABI, DRCWalletMgrParams_contractAT, {});
@@ -687,7 +687,7 @@ var Actions = {
   },
 
   // 往链上存数据
-  createDepositAddr: function (data) {
+  createDepositAddr: function(data) {
     let dataObject = data;
 
     // first check address is valid
@@ -787,7 +787,7 @@ var Actions = {
   },
 
   // 往链上存数据
-  doDeposit: function (data) {
+  doDeposit: function(data) {
     let dataObject = data;
     let requestObject = dataObject.data;
 
@@ -892,7 +892,7 @@ var Actions = {
   },
 
   // 去链上查询结果
-  getEthStatus: function (data) {
+  getEthStatus: function(data) {
     let dataObject = data;
     console.log('data in getEthStatus is: ', dataObject.data);
 
@@ -934,7 +934,7 @@ var Actions = {
   },
 
   // 去链上查询结果
-  getDepositAddr: function (data) {
+  getDepositAddr: function(data) {
     let dataObject = data;
 
     if (!web3.utils.isAddress(dataObject.data)) {
@@ -966,7 +966,7 @@ var Actions = {
     });
   },
 
-  getDepositInfo: function (data) {
+  getDepositInfo: function(data) {
     let dataObject = data;
 
     if (!web3.utils.isAddress(dataObject.data)) {
@@ -999,7 +999,7 @@ var Actions = {
     });
   },
 
-  getDepositTxs: function (data) {
+  getDepositTxs: function(data) {
     let dataObject = data;
     if (dataObject.data.length == 0) {
       // 返回failed 附带message
@@ -1099,7 +1099,7 @@ var Actions = {
       });
   },
 
-  getTxsBlocks: function (data) {
+  getTxsBlocks: function(data) {
     let dataObject = data;
 
     try {
@@ -1210,7 +1210,7 @@ var Actions = {
     return;
   },
 
-  getDepositTxsDetail: function (data) {
+  getDepositTxsDetail: function(data) {
     let dataObject = data;
 
     let queryData;
@@ -1401,7 +1401,7 @@ var Actions = {
     return;
   },
 
-  withdraw: function (data) {
+  withdraw: function(data) {
     let dataObject = data;
     let requestObject = dataObject.data;
 
@@ -1583,7 +1583,7 @@ let qs;
 app.use((req, res, next) => {
   // 初始化socket连接
   initWeb3Provider();
-  req.on('data', function (chunk) {
+  req.on('data', function(chunk) {
     try {
       // 将前台传来的值，转回对象类型
       qs = querystring.parse(chunk);
@@ -1622,7 +1622,7 @@ app.use((req, res, next) => {
 /**********************************************/
 /**************SERVER
 /**********************************************/
-app.post("/createDepositAddr", function (req, res) {
+app.post("/createDepositAddr", function(req, res) {
   console.log('/createDepositAddr: ', qs.hash);
   // 上链方法
   Actions.createDepositAddr({
@@ -1631,7 +1631,7 @@ app.post("/createDepositAddr", function (req, res) {
   });
 });
 
-app.post("/getEthStatus", function (req, res) {
+app.post("/getEthStatus", function(req, res) {
   console.log('/getEthStatus: ', qs.hash);
   // 查询方法
   result = Actions.getEthStatus({
@@ -1640,7 +1640,7 @@ app.post("/getEthStatus", function (req, res) {
   });
 });
 
-app.post("/getDepositAddr", function (req, res) {
+app.post("/getDepositAddr", function(req, res) {
   console.log('/getDepositAddr: ', qs.hash);
   // 查询方法
   result = Actions.getDepositAddr({
@@ -1649,7 +1649,7 @@ app.post("/getDepositAddr", function (req, res) {
   });
 });
 
-app.post("/getDepositTxs", function (req, res) {
+app.post("/getDepositTxs", function(req, res) {
   console.log('/getDepositTxs: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxs({
@@ -1658,7 +1658,7 @@ app.post("/getDepositTxs", function (req, res) {
   });
 });
 
-app.post("/getTxsBlocks", function (req, res) {
+app.post("/getTxsBlocks", function(req, res) {
   console.log('/getTxsBlocks: ', qs.hash);
   // 查询方法
   result = Actions.getTxsBlocks({
@@ -1667,7 +1667,7 @@ app.post("/getTxsBlocks", function (req, res) {
   });
 });
 
-app.post("/getDepositTxsDetail", function (req, res) {
+app.post("/getDepositTxsDetail", function(req, res) {
   console.log('/getDepositTxsDetail: ', qs.hash);
   // 查询方法
   result = Actions.getDepositTxsDetail({
@@ -1677,7 +1677,7 @@ app.post("/getDepositTxsDetail", function (req, res) {
 });
 
 let lastWid;
-app.post("/withdraw", function (req, res) {
+app.post("/withdraw", function(req, res) {
   if (qs.hash) {
     console.log('/withdraw info: ', qs.hash);
     qs = JSON.parse(qs.hash);
@@ -1699,7 +1699,7 @@ app.post("/withdraw", function (req, res) {
 });
 
 let lastDid;
-app.post("/doDeposit", function (req, res) {
+app.post("/doDeposit", function(req, res) {
   if (qs.hash) {
     console.log('/doDeposit info: ', qs.hash);
     qs = JSON.parse(qs.hash);
@@ -1724,7 +1724,7 @@ app.post("/doDeposit", function (req, res) {
 app.listen({
   // host: serverConfig.serverHost,
   port: serverConfig.serverPort
-}, function () {
+}, function() {
   // 初始化web3连接
   initWeb3Provider();
   // 初始化
