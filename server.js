@@ -10,7 +10,7 @@ const http = require('http');
 // 模块：对http请求所带的数据进行解析  https://www.cnblogs.com/whiteMu/p/5986297.html
 const querystring = require('querystring');
 const contract = require('truffle-contract');
-const web3Coder = require('truffle-contract/node_modules/web3/lib/solidity/coder.js');
+// const web3Coder = require('truffle-contract/node_modules/web3/lib/solidity/coder.js');
 const Web3 = require('web3');
 // 解决Error：Web3ProviderEngine does not support synchronous requests
 const Promise = require('bluebird');
@@ -547,7 +547,7 @@ var Actions = {
     DRCWalletMgrParamsContract.setProvider(web3.currentProvider);
     DRCWalletStorageContract.setProvider(web3.currentProvider);
     // console.log(DRCWalletMgrContract);
-    console.log(contractABI);
+    // console.log(contractABI);
 
     // bind token address
     DRCWalletMgrContract.methods.tk().call()
@@ -1487,8 +1487,8 @@ var Actions = {
               console.log(depositTime);
               let withdrawAddrName = 'withdraw address ' + num;
               console.log(withdrawAddrName);
-              // let withdrawAddrNameBytes = web3.eth.abi.encodeParameter('bytes32', withdrawAddrName);
-              let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);
+              let withdrawAddrNameBytes = web3.utils.utf8ToHex(withdrawAddrName);
+              // let withdrawAddrNameBytes = '0x' + web3Coder.encodeParam('bytes32', withdrawAddrName);
               console.log(withdrawAddrNameBytes);
               // const DECIMAL = web3.utils.toHex(1e18); 
               // let realValue = (value) => {
