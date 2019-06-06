@@ -1,12 +1,13 @@
 **/node_modules/
 **/solidity-lib/
+**/solidity-stringutils/
 **/HttpRequest/
 **/build/
 **/key/
-**/log/
 **/package-lock.json
 **/*.old
 **/*.old/
+**/*old/
 **/*.orig
 **/*.log
 **/*/*.old
@@ -19,3 +20,4 @@
 **/**/mailConfig.json
 **/**/serverConfig.json
 **/**/UTC--2018-04-16T03-21-26.305742000Z--004a129bd105e80631e241450d884612508eee73.json
+**/migrations/*_deploy_contracts.js

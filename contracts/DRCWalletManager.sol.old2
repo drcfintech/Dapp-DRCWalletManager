@@ -1,12 +1,12 @@
 pragma solidity ^0.4.21;
 
 
-import 'openzeppelin-solidity/contracts/ownership/Claimable.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Destructible.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/TokenDestructible.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/ownership/Claimable.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/lifecycle/Pausable.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/lifecycle/Destructible.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/lifecycle/TokenDestructible.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/token/ERC20/ERC20.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/math/SafeMath.sol';
 
 
 contract OwnerContract is Claimable {

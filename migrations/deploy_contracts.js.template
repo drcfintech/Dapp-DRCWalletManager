@@ -1,0 +1,42 @@
+// const Web3 = require("web3");
+const deployIndex = 1;
+// const Promise = require("bluebird");
+// const walletConfig = require("../config/walletConfig.json");
+const contractConfig = require('../config/compileContract.json');
+const defaultGasLimit = 6721975;
+
+
+// console.log(contractConfig.contracts);
+// var contractInstance1 = artifacts.require(contractConfig.contracts[1].name);
+// var contractInstance2 = artifacts.require(contractConfig.contracts[2].name);
+
+module.exports = function(deployer) {
+  // deployContract(DRCWalletMgrCon, deployer);
+  // sleep(300000);
+  // deployContract(DRCWalletStorage, deployer);
+  // deployer.then(() => {
+  // contractConfig.contracts.map((contract, ind) => {
+  let contract = contractConfig.contracts[deployIndex];
+  // if (ind > 0) {
+  console.log(contract.name);
+  var contractInstance = artifacts.require(contract.name);
+  if (contract.link) {
+    contract.link.map((lib) => {
+      var linkedLib = artifacts.require(lib);
+      if (linkedLib.address == undefined || linkedLib.address === "") {
+        deployer.deploy(linkedLib, {
+          gas: defaultGasLimit,
+          gasPrice: contractConfig.gasPrice
+        });
+      }
+      deployer.link(contract.link, contractInstance);
+    });
+  }
+  deployer.deploy(contractInstance, {
+    gas: contract.requiredGasLimit, //'6700000',
+    gasPrice: contractConfig.gasPrice
+  });
+  // }
+  // });
+  // });
+};

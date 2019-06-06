@@ -1,14 +1,30 @@
-var Migrations = artifacts.require("Migrations");
+var Migrations = artifacts.require("./Migrations.sol");
 
-const Web3 = require("web3");
-const Promise = require("bluebird");
-const walletConfig = require("../config/walletConfig.json");
+// module.exports = function(deployer) {
+//   deployer.deploy(Migrations);
+// };
+
 const contractConfig = require('../config/compileContract.json');
+// const defaultGasLimit = 6721975;
 
 
-module.exports = function (deployer) {
+// console.log(contractConfig.contracts);
+// var contractInstance1 = artifacts.require(contractConfig.contracts[1].name);
+// var contractInstance2 = artifacts.require(contractConfig.contracts[2].name);
+
+module.exports = function(deployer) {
+  // deployContract(DRCWalletMgrCon, deployer);
+  // sleep(300000);
+  // deployContract(DRCWalletStorage, deployer);
+  // deployer.then(() => {
+  // contractConfig.contracts.map((contract, ind) => {
+  // if (ind > 0) {
+  console.log(contractConfig.contracts[0].name);
   deployer.deploy(Migrations, {
     gas: contractConfig.contracts[0].requiredGasLimit, //'6700000',
     gasPrice: contractConfig.gasPrice
   });
+  // }
+  // });
+  // });
 };

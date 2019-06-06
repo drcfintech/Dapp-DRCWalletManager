@@ -1,6 +1,6 @@
 pragma solidity >=0.4.18 <0.7.0;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../solidity-lib/openzeppelin-solidity-112/contracts/ownership/Ownable.sol';
 
 
 /**
@@ -9,34 +9,34 @@ import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
  * @dev the inheritor should implement 'initialCongress' at first
  */
 contract Autonomy is Ownable {
-    address public congress;
-    bool init = false;
+  address public congress;
+  bool init = false;
 
-    modifier onlyCongress() {
-        require(msg.sender == congress);
-        _;
-    }
+  modifier onlyCongress() {
+    require(msg.sender == congress);
+    _;
+  }
 
-    /**
-     * @dev initialize a Congress contract address for this token 
-     *
-     * @param _congress address the congress contract address
-     */
-    function initialCongress(address _congress) onlyOwner public {
-        require(!init);
-        require(_congress != address(0));
-        congress = _congress;
-        init = true;
-    }
+  /**
+   * @dev initialize a Congress contract address for this token 
+   *
+   * @param _congress address the congress contract address
+   */
+  function initialCongress(address _congress) onlyOwner public {
+    require(!init);
+    require(_congress != address(0));
+    congress = _congress;
+    init = true;
+  }
 
-    /**
-     * @dev set a Congress contract address for this token
-     * must change this address by the last congress contract 
-     *
-     * @param _congress address the congress contract address
-     */
-    function changeCongress(address _congress) onlyCongress public {
-        require(_congress != address(0));
-        congress = _congress;
-    }
+  /**
+   * @dev set a Congress contract address for this token
+   * must change this address by the last congress contract 
+   *
+   * @param _congress address the congress contract address
+   */
+  function changeCongress(address _congress) onlyCongress public {
+    require(_congress != address(0));
+    congress = _congress;
+  }
 }
