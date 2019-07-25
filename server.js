@@ -1218,7 +1218,7 @@ var Actions = {
     return;
   },
 
-  getDepositTxsDetail: function(data) {
+  getTxsDetail: function(data) {
     let dataObject = data;
 
     let queryData;
