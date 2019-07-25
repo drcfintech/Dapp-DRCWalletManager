@@ -546,7 +546,7 @@ var Actions = {
     DRCTokenContract.setProvider(web3.currentProvider);
     DRCWalletMgrParamsContract.setProvider(web3.currentProvider);
     DRCWalletStorageContract.setProvider(web3.currentProvider);
-    console.log(DRCWalletMgrContract);
+    // console.log(DRCWalletMgrContract);
     // console.log(contractABI);
 
     // bind token address
