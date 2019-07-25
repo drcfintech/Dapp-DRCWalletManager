@@ -1675,10 +1675,10 @@ app.post("/getTxsBlocks", function(req, res) {
   });
 });
 
-app.post("/getDepositTxsDetail", function(req, res) {
-  console.log('/getDepositTxsDetail: ', qs.hash);
+app.post("/getTxsDetail", function(req, res) {
+  console.log('/getTxsDetail: ', qs.hash);
   // 查询方法
-  result = Actions.getDepositTxsDetail({
+  result = Actions.getTxsDetail({
     data: qs.hash,
     res: res
   });
