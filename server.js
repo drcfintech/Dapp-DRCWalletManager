@@ -142,12 +142,12 @@ function initWeb3Provider() {
   web3.eth.defaultAccount = account.address;
   console.log('web3.eth.defaultAccount : ', web3.eth.defaultAccount);
 
-  // if (typeof web3.eth.getAccountsPromise === 'undefined') {
-  //   //console.log('解决 Error: Web3ProviderEngine does not support synchronous requests.');
-  //   Promise.promisifyAll(web3.eth, {
-  //     suffix: 'Promise'
-  //   });
-  // }
+  if (typeof web3.eth.getAccountsPromise === 'undefined') {
+    //console.log('解决 Error: Web3ProviderEngine does not support synchronous requests.');
+    Promise.promisifyAll(web3.eth, {
+      suffix: 'Promise'
+    });
+  }
 }
 
 // let gasPrice;
@@ -546,7 +546,7 @@ var Actions = {
     DRCTokenContract.setProvider(web3.currentProvider);
     DRCWalletMgrParamsContract.setProvider(web3.currentProvider);
     DRCWalletStorageContract.setProvider(web3.currentProvider);
-    // console.log(DRCWalletMgrContract);
+    console.log(DRCWalletMgrContract);
     // console.log(contractABI);
 
     // bind token address
@@ -694,6 +694,7 @@ var Actions = {
 
     // first check address is valid
     if (!web3.utils.isAddress(dataObject.data)) {
+      console.log("the wallet address is not vaild...");
       // 返回failed 附带message
       dataObject.res.end(JSON.stringify(responceData.addressError));
       // 保存log
@@ -704,6 +705,7 @@ var Actions = {
     // 上链步骤：查询没有结果之后再上链
     DRCWalletMgrContract.methods.getDepositAddress(dataObject.data).call((error, result) => {
         if (error) {
+          console.log(responceData.evmError);
           // 以太坊虚拟机的异常
           dataObject.res.end(JSON.stringify(responceData.evmError));
           // 保存log
@@ -1059,21 +1061,25 @@ var Actions = {
           })
           .then((events) => {
             let returnObject = responceData.getDepositTxSuccess;
-            returnObject.records = new Array(events.length);
+            if (!events || events.length == 0) {
+              returnObject.records = [];
+            } else {
+              returnObject.records = new Array(events.length);
 
-            for (var i = 0; i < events.length; i++) {
-              returnObject.records[i] = {
-                from: events[i].returnValues.from
-              };
-              returnObject.records[i].to = events[i].returnValues.to;
-              returnObject.records[i].value = events[i].returnValues.value;
-              returnObject.records[i].blockNumber = events[i].blockNumber;
-              console.log(totalConfirmNumber);
-              console.log(blockHigh);
-              console.log(returnObject.records[i].blockNumber);
-              console.log(blockHigh - returnObject.records[i].blockNumber);
-              returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber;
-              returnObject.records[i].txHash = events[i].transactionHash;
+              for (var i = 0; i < events.length; i++) {
+                returnObject.records[i] = {
+                  from: events[i].returnValues.from
+                };
+                returnObject.records[i].to = events[i].returnValues.to;
+                returnObject.records[i].value = events[i].returnValues.value;
+                returnObject.records[i].blockNumber = events[i].blockNumber;
+                console.log(totalConfirmNumber);
+                console.log(blockHigh);
+                console.log(returnObject.records[i].blockNumber);
+                console.log(blockHigh - returnObject.records[i].blockNumber);
+                returnObject.records[i].blockConfirmNum = blockHigh - returnObject.records[i].blockNumber;
+                returnObject.records[i].txHash = events[i].transactionHash;
+              }
             }
             console.log(returnObject);
             dataObject.res.end(JSON.stringify(returnObject));
